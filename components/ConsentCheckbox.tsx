@@ -15,7 +15,7 @@ export function ConsentCheckbox({
         aria-label="I consent"
       />
       <span>
-        I agree to receiving my Vedic profile on WhatsApp and to Rashify storing my birth details for analysis.{' '}
+        I consent to receiving my Vedic profile on WhatsApp and to Rashify storing my birth details for analysis.{' '}
         <a href="/privacy" className="underline">Privacy policy</a>.
       </span>
     </label>

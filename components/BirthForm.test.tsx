@@ -14,7 +14,7 @@ describe('BirthForm', () => {
     await userEvent.type(screen.getByLabelText(/phone/i), '9999999999');
     await userEvent.click(screen.getByRole('button', { name: /reveal|see/i }));
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(await screen.findByText(/consent/i)).toBeInTheDocument();
+    expect(await screen.findByText('Consent required')).toBeInTheDocument();
   });
 
   it('submits valid input with phone normalized to E.164', async () => {

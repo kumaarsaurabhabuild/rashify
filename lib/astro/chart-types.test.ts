@@ -4,8 +4,8 @@ import { ChartZ, ArchetypeZ } from './chart-types';
 const validChart = {
   ayanamsa: 'Lahiri',
   lagna: { sign: 'Vrishabha', degree: 12.5 },
-  sun:   { sign: 'Mesha', house: 12, degree: 5.2, nakshatra: 'Ashwini', pada: 1 },
-  moon:  { sign: 'Vrishchika', house: 7, degree: 3.1, nakshatra: 'Anuradha', pada: 2 },
+  sun:   { name: 'Sun', sign: 'Mesha', house: 12, degree: 5.2, nakshatra: 'Ashwini', pada: 1 },
+  moon:  { name: 'Moon', sign: 'Vrishchika', house: 7, degree: 3.1, nakshatra: 'Anuradha', pada: 2 },
   planets: [
     { name: 'Saturn', sign: 'Vrishchika', house: 7, degree: 8, nakshatra: 'Anuradha', pada: 2 },
   ],

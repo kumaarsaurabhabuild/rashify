@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const PlanetZ = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   sign: z.string(),
   house: z.number().int().min(1).max(12),
   degree: z.number(),
