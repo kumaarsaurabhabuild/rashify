@@ -226,7 +226,7 @@ RLS locked on all tables; server uses `service_role`. Public read on `public_car
 
 ### 4a. ShareCard (1080×1920, 9:16)
 
-Layout (top→bottom): brand mark · archetype label (Cormorant Garamond 48pt) · Sanskrit label (Tiro Devanagari) · glyph row (lagna/nakshatra/dasha-lord SVGs) · core traits (3 bullets, Inter 28pt) · strengths/growth-edges (2-col) · power window + lucky · provenance footer (sidereal/Lahiri/dasha period) · personal URL `saurabh.rashify.in` · QR (200×200, gold on cream).
+Layout (top→bottom): brand mark · archetype label (Cormorant Garamond 48pt) · Sanskrit label (Tiro Devanagari) · glyph row (lagna/nakshatra/dasha-lord SVGs) · core traits (3 bullets, Inter 28pt) · strengths/growth-edges (2-col) · power window + lucky · provenance footer (sidereal/Lahiri/dasha period) · personal URL `rashify.in/u/{slug}` (e.g. `rashify.in/u/saurabh-x7k2`) · QR (200×200, gold on cream) encoding the same URL.
 
 Palette: `#3a0a14` (deep maroon bg), `#f1e7d4` (ivory text), `#c9a24a` (antique gold). Subtle paper-grain CSS noise filter. No emojis. No gradients.
 
