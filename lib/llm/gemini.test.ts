@@ -2,14 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateArchetype } from './gemini';
 import type { Chart } from '@/lib/astro/chart-types';
 
-const mockGenerate = vi.fn();
-vi.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: class {
-    getGenerativeModel() {
-      return { generateContent: mockGenerate };
-    }
-  },
-}));
+const mockFetch = vi.fn();
+global.fetch = mockFetch as never;
 
 const chart: Chart = {
   ayanamsa: 'Lahiri',
@@ -34,32 +28,56 @@ const goodArchetype = {
   provenance: { ayanamsa: 'Lahiri', system: 'Vedic sidereal', nakshatra: 'Anuradha', lagna: 'Vrishabha', currentDasha: 'Saturn-Venus' },
 };
 
+function chatRes(content: string) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ choices: [{ message: { content } }] }),
+    text: async () => '',
+  };
+}
+
 beforeEach(() => {
-  mockGenerate.mockReset();
-  process.env.GEMINI_API_KEY = 'fake';
+  mockFetch.mockReset();
+  process.env.OPENROUTER_API_KEY = 'fake';
+  process.env.OPENROUTER_MODEL = 'google/gemini-2.0-flash-001';
 });
 
-describe('generateArchetype', () => {
+describe('generateArchetype (OpenRouter)', () => {
   it('returns parsed archetype on valid JSON response', async () => {
-    mockGenerate.mockResolvedValueOnce({
-      response: { text: () => JSON.stringify(goodArchetype) },
-    });
+    mockFetch.mockResolvedValueOnce(chatRes(JSON.stringify(goodArchetype)));
     const out = await generateArchetype(chart, 'Saurabh');
     expect(out.label).toBe(goodArchetype.label);
     expect(out.coreTraits).toHaveLength(3);
+
+    const call = mockFetch.mock.calls[0];
+    expect(call[0]).toBe('https://openrouter.ai/api/v1/chat/completions');
+    const init = call[1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer fake');
+    const body = JSON.parse(init.body as string);
+    expect(body.model).toBe('google/gemini-2.0-flash-001');
+    expect(body.response_format).toEqual({ type: 'json_object' });
+    expect(body.messages[0].role).toBe('system');
+    expect(body.messages[1].role).toBe('user');
   });
 
   it('retries once on schema failure with stricter prompt', async () => {
-    mockGenerate
-      .mockResolvedValueOnce({ response: { text: () => '{"label":"x"}' } })           // bad
-      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(goodArchetype) } });
+    mockFetch
+      .mockResolvedValueOnce(chatRes('{"label":"x"}'))
+      .mockResolvedValueOnce(chatRes(JSON.stringify(goodArchetype)));
     const out = await generateArchetype(chart, 'Saurabh');
-    expect(mockGenerate).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(out.label).toBe(goodArchetype.label);
   });
 
   it('throws LLM_BAD after second failure', async () => {
-    mockGenerate.mockResolvedValue({ response: { text: () => '{"label":"x"}' } });
+    mockFetch.mockResolvedValue(chatRes('{"label":"x"}'));
     await expect(generateArchetype(chart, 'X')).rejects.toThrow('LLM_BAD');
+  });
+
+  it('throws LLM_HTTP on 5xx', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503, text: async () => 'busy' });
+    await expect(generateArchetype(chart, 'X')).rejects.toThrow(/LLM_HTTP_503/);
   });
 });
