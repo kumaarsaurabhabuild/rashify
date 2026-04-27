@@ -11,7 +11,7 @@ describe('BirthForm', () => {
     await userEvent.type(screen.getByLabelText(/date/i), '1995-08-15');
     await userEvent.type(screen.getByLabelText(/time/i), '14:30');
     await userEvent.type(screen.getByLabelText(/place/i), 'Mumbai');
-    await userEvent.type(screen.getByLabelText(/phone/i), '9999999999');
+    await userEvent.type(screen.getByPlaceholderText('9999999999'), '9999999999');
     await userEvent.click(screen.getByRole('button', { name: /reveal|see/i }));
     expect(onSubmit).not.toHaveBeenCalled();
     expect(await screen.findByText('Consent required')).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe('BirthForm', () => {
     await userEvent.type(screen.getByLabelText(/date/i), '1995-08-15');
     await userEvent.type(screen.getByLabelText(/time/i), '14:30');
     await userEvent.type(screen.getByLabelText(/place/i), 'Mumbai');
-    await userEvent.type(screen.getByLabelText(/phone/i), '9999999999');
+    await userEvent.type(screen.getByPlaceholderText('9999999999'), '9999999999');
     await userEvent.click(screen.getByLabelText(/i consent/i));
     await userEvent.click(screen.getByRole('button', { name: /reveal|see/i }));
     expect(onSubmit).toHaveBeenCalledWith(
