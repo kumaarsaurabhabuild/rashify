@@ -1,25 +1,44 @@
 import { z } from 'zod';
 
-const PlanetZ = z.object({
-  name: z.string(),
-  sign: z.string(),
+export const PlanetZ = z.object({
+  name: z.string(),                  // 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu', 'Ascendant'
+  rasi: z.string(),                  // sign name (Vedic, e.g. 'Dhanu')
+  rasiLord: z.string(),              // ruling planet of the sign
   house: z.number().int().min(1).max(12),
   degree: z.number(),
-  nakshatra: z.string(),
+  isRetrograde: z.boolean(),
+});
+export type Planet = z.infer<typeof PlanetZ>;
+
+export const NakshatraZ = z.object({
+  name: z.string(),
   pada: z.number().int().min(1).max(4),
+  lord: z.string(),
 });
 
 export const ChartZ = z.object({
-  ayanamsa: z.string(),
-  lagna: z.object({ sign: z.string(), degree: z.number() }),
-  sun: PlanetZ,
-  moon: PlanetZ,
-  planets: z.array(PlanetZ),
-  dasha: z.object({
-    mahadasha: z.string(),
-    antardasha: z.string(),
-    start: z.string(),
-    end: z.string(),
+  ayanamsa: z.string(),                                // 'Lahiri'
+  nakshatra: NakshatraZ,                                // moon nakshatra
+  moonSign: z.string(),                                 // chandra_rasi
+  sunSign: z.string(),                                  // soorya_rasi
+  ascendant: PlanetZ,                                   // the Ascendant entry — its `rasi` is lagna
+  planets: z.array(PlanetZ),                            // all 10 incl. Ascendant
+  currentDasha: z
+    .object({
+      mahadasha: z.string(),
+      antardasha: z.string(),
+      start: z.string(),
+      end: z.string(),
+    })
+    .nullable(),
+  activeYogas: z.array(z.string()),                     // names of has_yoga=true
+  mangalDosha: z.boolean(),
+  additionalInfo: z.object({
+    luckyColor: z.string(),
+    bestDirection: z.string(),
+    deity: z.string(),
+    animalSign: z.string(),
+    birthStone: z.string(),
   }),
   tzOffset: z.number(),
   tzEstimated: z.boolean().optional(),

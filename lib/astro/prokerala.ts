@@ -1,14 +1,20 @@
-import type { Chart } from './chart-types';
+import type { Chart, Planet } from './chart-types';
 
 const TOKEN_URL = 'https://api.prokerala.com/token';
-const KUNDLI_URL = 'https://api.prokerala.com/v2/astrology/kundli';
+const KUNDLI_URL = 'https://api.prokerala.com/v2/astrology/kundli/advanced';
+const PLANETS_URL = 'https://api.prokerala.com/v2/astrology/planet-position';
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
+export function _resetTokenCacheForTests() {
+  cachedToken = null;
+}
+
 async function getToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
-  const id = process.env.PROKERALA_CLIENT_ID!;
-  const secret = process.env.PROKERALA_CLIENT_SECRET!;
+  const id = process.env.PROKERALA_CLIENT_ID;
+  const secret = process.env.PROKERALA_CLIENT_SECRET;
+  if (!id || !secret) throw new Error('PROKERALA_CREDS_MISSING');
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: id,
@@ -26,59 +32,130 @@ async function getToken(): Promise<string> {
 }
 
 export interface ChartInput {
-  datetime: string;   // ISO8601 with offset
+  datetime: string; // ISO8601 with offset
   lat: number;
   lon: number;
   tzOffset: number;
 }
 
-export async function fetchChart(input: ChartInput): Promise<Chart> {
+interface KundliRaw {
+  data: {
+    nakshatra_details: {
+      nakshatra: { name: string; pada: number; lord: { name: string } };
+      chandra_rasi: { name: string };
+      soorya_rasi: { name: string };
+      additional_info?: {
+        deity?: string;
+        animal_sign?: string;
+        color?: string;
+        best_direction?: string;
+        birth_stone?: string;
+      };
+    };
+    mangal_dosha: { has_dosha: boolean };
+    yoga_details?: Array<{
+      yoga_list?: Array<{ name: string; has_yoga: boolean }>;
+    }>;
+    dasha_periods?: DashaPeriod[];
+  };
+}
+
+interface DashaPeriod {
+  name: string;
+  start: string;
+  end: string;
+  antardasha?: DashaPeriod[];
+}
+
+interface PlanetsRaw {
+  data: {
+    planet_position: Array<{
+      name: string;
+      position: number;
+      degree: number;
+      is_retrograde: boolean;
+      rasi: { name: string; lord: { name: string } };
+    }>;
+  };
+}
+
+function findCurrentDasha(
+  periods: DashaPeriod[] | undefined,
+  now: Date,
+): Chart['currentDasha'] {
+  if (!periods || periods.length === 0) return null;
+  const md = periods.find((p) => new Date(p.start) <= now && now < new Date(p.end));
+  if (!md) return null;
+  const ad = (md.antardasha ?? []).find(
+    (a) => new Date(a.start) <= now && now < new Date(a.end),
+  );
+  if (!ad) {
+    return { mahadasha: md.name, antardasha: md.name, start: md.start, end: md.end };
+  }
+  return { mahadasha: md.name, antardasha: ad.name, start: ad.start, end: ad.end };
+}
+
+function activeYogaNames(yd: KundliRaw['data']['yoga_details']): string[] {
+  if (!yd) return [];
+  return yd.flatMap((cat) => (cat.yoga_list ?? []).filter((y) => y.has_yoga).map((y) => y.name));
+}
+
+function planetsFromRaw(raw: PlanetsRaw): { ascendant: Planet; planets: Planet[] } {
+  const planets: Planet[] = raw.data.planet_position.map((p) => ({
+    name: p.name,
+    rasi: p.rasi.name,
+    rasiLord: p.rasi.lord.name,
+    house: p.position,
+    degree: p.degree,
+    isRetrograde: p.is_retrograde,
+  }));
+  const ascendant = planets.find((p) => p.name === 'Ascendant');
+  if (!ascendant) throw new Error('PROKERALA_NO_ASCENDANT');
+  return { ascendant, planets };
+}
+
+async function callProkerala<T>(url: string, params: URLSearchParams, token: string): Promise<T> {
+  const res = await fetch(`${url}?${params}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error('PROKERALA_DOWN');
+  return (await res.json()) as T;
+}
+
+export async function fetchChart(input: ChartInput, now: Date = new Date()): Promise<Chart> {
   const tok = await getToken();
   const params = new URLSearchParams({
-    ayanamsa: '1',                              // 1 = Lahiri
+    ayanamsa: '1', // 1 = Lahiri
     coordinates: `${input.lat},${input.lon}`,
     datetime: input.datetime,
   });
-  const res = await fetch(`${KUNDLI_URL}?${params}`, {
-    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/json' },
-  });
-  if (!res.ok) throw new Error('PROKERALA_DOWN');
-  const { data } = (await res.json()) as { data: ProkRaw };
-  return mapToChart(data, input.tzOffset);
-}
 
-interface ProkRaw {
-  ayanamsa: { name: string };
-  lagna: { sign: string; longitude: number };
-  planets: Array<{
-    name: string;
-    sign: string;
-    house: number;
-    longitude: number;
-    nakshatra: { name: string; pada: number };
-  }>;
-  dasha: { mahadasha: string; antardasha: string; start_date: string; end_date: string };
-}
+  const [kundli, planetsRaw] = await Promise.all([
+    callProkerala<KundliRaw>(KUNDLI_URL, params, tok),
+    callProkerala<PlanetsRaw>(PLANETS_URL, params, tok),
+  ]);
 
-function mapToChart(d: ProkRaw, tzOffset: number): Chart {
-  const sun = d.planets.find((p) => p.name === 'Sun')!;
-  const moon = d.planets.find((p) => p.name === 'Moon')!;
-  const norm = (p: ProkRaw['planets'][number]) => ({
-    name: p.name, sign: p.sign, house: p.house,
-    degree: p.longitude, nakshatra: p.nakshatra.name, pada: p.nakshatra.pada,
-  });
+  const nd = kundli.data.nakshatra_details;
+  const ai = nd.additional_info ?? {};
+  const { ascendant, planets } = planetsFromRaw(planetsRaw);
+
   return {
-    ayanamsa: d.ayanamsa.name,
-    lagna: { sign: d.lagna.sign, degree: d.lagna.longitude },
-    sun: norm(sun),
-    moon: norm(moon),
-    planets: d.planets.map(norm),
-    dasha: {
-      mahadasha: d.dasha.mahadasha,
-      antardasha: d.dasha.antardasha,
-      start: d.dasha.start_date,
-      end: d.dasha.end_date,
+    ayanamsa: 'Lahiri',
+    nakshatra: { name: nd.nakshatra.name, pada: nd.nakshatra.pada, lord: nd.nakshatra.lord.name },
+    moonSign: nd.chandra_rasi.name,
+    sunSign: nd.soorya_rasi.name,
+    ascendant,
+    planets,
+    currentDasha: findCurrentDasha(kundli.data.dasha_periods, now),
+    activeYogas: activeYogaNames(kundli.data.yoga_details),
+    mangalDosha: kundli.data.mangal_dosha.has_dosha,
+    additionalInfo: {
+      luckyColor: ai.color ?? 'Unknown',
+      bestDirection: ai.best_direction ?? 'Unknown',
+      deity: ai.deity ?? 'Unknown',
+      animalSign: ai.animal_sign ?? 'Unknown',
+      birthStone: ai.birth_stone ?? 'Unknown',
     },
-    tzOffset,
+    tzOffset: input.tzOffset,
   };
 }

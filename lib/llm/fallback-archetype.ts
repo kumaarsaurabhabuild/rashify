@@ -1,10 +1,11 @@
 import type { Chart, Archetype } from '@/lib/astro/chart-types';
 
+// Real Prokerala spellings (Lahiri ayanamsa)
 const ELEMENT_BY_SIGN: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
   Mesha: 'fire', Simha: 'fire', Dhanu: 'fire',
   Vrishabha: 'earth', Kanya: 'earth', Makara: 'earth',
   Mithuna: 'air', Tula: 'air', Kumbha: 'air',
-  Karka: 'water', Vrishchika: 'water', Meena: 'water',
+  Karka: 'water', Vrischika: 'water', Meena: 'water',
 };
 
 const ARCHETYPES = {
@@ -21,17 +22,21 @@ const ARCHETYPES = {
          strengths: ['Strategy', 'Wit', 'Networks'], edges: ['Decision', 'Follow-through'],
          color: 'azure', num: 5, window: '10 AM - 2 PM' },
   water: { label: 'The Tidal Mirror', sanskrit: 'Jala Pratibimba',
-           traits: ['Feels rooms before reading them', 'Carries other people\'s weather', 'Retreats when overstimulated'],
+           traits: ['Feels rooms before reading them', "Carries other people's weather", 'Retreats when overstimulated'],
            strengths: ['Empathy', 'Intuition', 'Memory'], edges: ['Boundaries', 'Selfhood'],
            color: 'indigo', num: 7, window: '8 PM - 12 AM' },
 };
 
 export function fallbackArchetype(chart: Chart): Archetype {
-  const lagnaEl = ELEMENT_BY_SIGN[chart.lagna.sign] ?? 'earth';
-  const moonEl = ELEMENT_BY_SIGN[chart.moon.sign] ?? lagnaEl;
+  const lagnaSign = chart.ascendant.rasi;
+  const lagnaEl = ELEMENT_BY_SIGN[lagnaSign] ?? 'earth';
+  const moonEl = ELEMENT_BY_SIGN[chart.moonSign] ?? lagnaEl;
   // blend: lagna dominant; moon flavors color/window
   const base = ARCHETYPES[lagnaEl];
   const flavor = ARCHETYPES[moonEl];
+  const dasha = chart.currentDasha
+    ? `${chart.currentDasha.mahadasha}-${chart.currentDasha.antardasha}`
+    : 'Unknown';
   return {
     label: base.label,
     sanskritLabel: base.sanskrit,
@@ -45,9 +50,9 @@ export function fallbackArchetype(chart: Chart): Archetype {
     provenance: {
       ayanamsa: chart.ayanamsa,
       system: 'Vedic sidereal',
-      nakshatra: chart.moon.nakshatra,
-      lagna: chart.lagna.sign,
-      currentDasha: `${chart.dasha.mahadasha}-${chart.dasha.antardasha}`,
+      nakshatra: chart.nakshatra.name,
+      lagna: lagnaSign,
+      currentDasha: dasha,
     },
   };
 }

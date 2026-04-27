@@ -1,0 +1,177 @@
+{
+    "status": "ok",
+    "data": {
+        "planet_position": [
+            {
+                "id": 0,
+                "name": "Sun",
+                "longitude": 256.68505772633006,
+                "is_retrograde": false,
+                "position": 9,
+                "degree": 16.685057726330058,
+                "rasi": {
+                    "id": 8,
+                    "name": "Dhanu",
+                    "lord": {
+                        "id": 5,
+                        "name": "Jupiter",
+                        "vedic_name": "Guru"
+                    }
+                }
+            },
+            {
+                "id": 1,
+                "name": "Moon",
+                "longitude": 255.57185269899009,
+                "is_retrograde": false,
+                "position": 9,
+                "degree": 15.571852698990085,
+                "rasi": {
+                    "id": 8,
+                    "name": "Dhanu",
+                    "lord": {
+                        "id": 5,
+                        "name": "Jupiter",
+                        "vedic_name": "Guru"
+                    }
+                }
+            },
+            {
+                "id": 2,
+                "name": "Mercury",
+                "longitude": 267.25008995816466,
+                "is_retrograde": false,
+                "position": 9,
+                "degree": 27.250089958164665,
+                "rasi": {
+                    "id": 8,
+                    "name": "Dhanu",
+                    "lord": {
+                        "id": 5,
+                        "name": "Jupiter",
+                        "vedic_name": "Guru"
+                    }
+                }
+            },
+            {
+                "id": 3,
+                "name": "Venus",
+                "longitude": 210.41299075403094,
+                "is_retrograde": false,
+                "position": 8,
+                "degree": 0.4129907540309432,
+                "rasi": {
+                    "id": 7,
+                    "name": "Vrischika",
+                    "lord": {
+                        "id": 4,
+                        "name": "Mars",
+                        "vedic_name": "Kuja"
+                    }
+                }
+            },
+            {
+                "id": 4,
+                "name": "Mars",
+                "longitude": 128.86696282576563,
+                "is_retrograde": false,
+                "position": 5,
+                "degree": 8.866962825765626,
+                "rasi": {
+                    "id": 4,
+                    "name": "Simha",
+                    "lord": {
+                        "id": 0,
+                        "name": "Sun",
+                        "vedic_name": "Ravi"
+                    }
+                }
+            },
+            {
+                "id": 5,
+                "name": "Jupiter",
+                "longitude": 221.01979509913056,
+                "is_retrograde": false,
+                "position": 8,
+                "degree": 11.019795099130562,
+                "rasi": {
+                    "id": 7,
+                    "name": "Vrischika",
+                    "lord": {
+                        "id": 4,
+                        "name": "Mars",
+                        "vedic_name": "Kuja"
+                    }
+                }
+            },
+            {
+                "id": 6,
+                "name": "Saturn",
+                "longitude": 314.234697309235,
+                "is_retrograde": false,
+                "position": 11,
+                "degree": 14.234697309235003,
+                "rasi": {
+                    "id": 10,
+                    "name": "Kumbha",
+                    "lord": {
+                        "id": 6,
+                        "name": "Saturn",
+                        "vedic_name": "Shani"
+                    }
+                }
+            },
+            {
+                "id": 101,
+                "name": "Rahu",
+                "longitude": 197.96087065353086,
+                "is_retrograde": true,
+                "position": 7,
+                "degree": 17.96087065353086,
+                "rasi": {
+                    "id": 6,
+                    "name": "Tula",
+                    "lord": {
+                        "id": 3,
+                        "name": "Venus",
+                        "vedic_name": "Shukra"
+                    }
+                }
+            },
+            {
+                "id": 102,
+                "name": "Ketu",
+                "longitude": 17.960870653530833,
+                "is_retrograde": true,
+                "position": 1,
+                "degree": 17.960870653530833,
+                "rasi": {
+                    "id": 0,
+                    "name": "Mesha",
+                    "lord": {
+                        "id": 4,
+                        "name": "Mars",
+                        "vedic_name": "Kuja"
+                    }
+                }
+            },
+            {
+                "id": 100,
+                "name": "Ascendant",
+                "longitude": 23.130950025955286,
+                "is_retrograde": false,
+                "position": 1,
+                "degree": 23.130950025955286,
+                "rasi": {
+                    "id": 0,
+                    "name": "Mesha",
+                    "lord": {
+                        "id": 4,
+                        "name": "Mars",
+                        "vedic_name": "Kuja"
+                    }
+                }
+            }
+        ]
+    }
+}

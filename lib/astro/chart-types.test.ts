@@ -3,13 +3,19 @@ import { ChartZ, ArchetypeZ } from './chart-types';
 
 const validChart = {
   ayanamsa: 'Lahiri',
-  lagna: { sign: 'Vrishabha', degree: 12.5 },
-  sun:   { name: 'Sun', sign: 'Mesha', house: 12, degree: 5.2, nakshatra: 'Ashwini', pada: 1 },
-  moon:  { name: 'Moon', sign: 'Vrishchika', house: 7, degree: 3.1, nakshatra: 'Anuradha', pada: 2 },
+  nakshatra: { name: 'Anuradha', pada: 2, lord: 'Saturn' },
+  moonSign: 'Vrischika',
+  sunSign: 'Mesha',
+  ascendant: { name: 'Ascendant', rasi: 'Vrishabha', rasiLord: 'Venus', house: 1, degree: 12, isRetrograde: false },
   planets: [
-    { name: 'Saturn', sign: 'Vrishchika', house: 7, degree: 8, nakshatra: 'Anuradha', pada: 2 },
+    { name: 'Sun', rasi: 'Mesha', rasiLord: 'Mars', house: 12, degree: 5.2, isRetrograde: false },
+    { name: 'Moon', rasi: 'Vrischika', rasiLord: 'Mars', house: 7, degree: 3.1, isRetrograde: false },
+    { name: 'Saturn', rasi: 'Vrischika', rasiLord: 'Mars', house: 7, degree: 8, isRetrograde: false },
   ],
-  dasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+  currentDasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+  activeYogas: ['Kedara Yoga'],
+  mangalDosha: false,
+  additionalInfo: { luckyColor: 'Black', bestDirection: 'East', deity: 'Apas', animalSign: 'Monkey', birthStone: 'Diamond' },
   tzOffset: 330,
 };
 
@@ -17,9 +23,12 @@ describe('ChartZ', () => {
   it('accepts a valid chart', () => {
     expect(ChartZ.safeParse(validChart).success).toBe(true);
   });
-  it('rejects missing lagna', () => {
-    const bad = { ...validChart, lagna: undefined };
+  it('rejects missing ascendant', () => {
+    const bad = { ...validChart, ascendant: undefined };
     expect(ChartZ.safeParse(bad).success).toBe(false);
+  });
+  it('accepts null currentDasha', () => {
+    expect(ChartZ.safeParse({ ...validChart, currentDasha: null }).success).toBe(true);
   });
 });
 

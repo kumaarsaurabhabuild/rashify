@@ -36,6 +36,7 @@
     "jsdom": "^27.0.1",
     "msw": "^2.13.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }

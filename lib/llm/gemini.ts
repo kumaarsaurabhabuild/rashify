@@ -7,12 +7,12 @@ interface ChatResponse {
   choices?: Array<{ message?: { content?: string } }>;
 }
 
-async function callLLM(userMsg: string): Promise<string> {
+async function callLLMOnce(userMsg: string): Promise<Response> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error('LLM_NO_KEY');
   const model = process.env.OPENROUTER_MODEL ?? 'google/gemini-2.0-flash-001';
 
-  const res = await fetch(OPENROUTER_URL, {
+  return fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${key}`,
@@ -31,15 +31,28 @@ async function callLLM(userMsg: string): Promise<string> {
       ],
     }),
   });
+}
 
+function isTransient(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+async function callLLM(userMsg: string): Promise<string> {
+  // Up to 3 attempts on transient 429/5xx — OpenRouter→Gemini upstream
+  // is sometimes rate-limited or 504s. Backoff 800ms, then 2.5s.
+  const backoffs = [800, 2500];
+  let res = await callLLMOnce(userMsg);
+  for (const delay of backoffs) {
+    if (res.ok || !isTransient(res.status)) break;
+    await new Promise((r) => setTimeout(r, delay));
+    res = await callLLMOnce(userMsg);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`LLM_HTTP_${res.status}: ${body.slice(0, 200)}`);
   }
-
   const j = (await res.json()) as ChatResponse;
-  const text = j.choices?.[0]?.message?.content ?? '';
-  return text;
+  return j.choices?.[0]?.message?.content ?? '';
 }
 
 function safeJSON(s: string): unknown {

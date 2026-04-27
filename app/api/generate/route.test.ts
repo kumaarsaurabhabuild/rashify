@@ -18,11 +18,18 @@ vi.mock('@/lib/astro/geocode', () => ({
 vi.mock('@/lib/astro/prokerala', () => ({
   fetchChart: vi.fn(async () => ({
     ayanamsa: 'Lahiri',
-    lagna: { sign: 'Vrishabha', degree: 12 },
-    sun: { name: 'Sun', sign: 'Mesha', house: 12, degree: 5, nakshatra: 'Ashwini', pada: 1 },
-    moon: { name: 'Moon', sign: 'Vrishchika', house: 7, degree: 3, nakshatra: 'Anuradha', pada: 2 },
-    planets: [],
-    dasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+    nakshatra: { name: 'Anuradha', pada: 2, lord: 'Saturn' },
+    moonSign: 'Vrischika',
+    sunSign: 'Mesha',
+    ascendant: { name: 'Ascendant', rasi: 'Vrishabha', rasiLord: 'Venus', house: 1, degree: 12, isRetrograde: false },
+    planets: [
+      { name: 'Sun', rasi: 'Mesha', rasiLord: 'Mars', house: 12, degree: 5, isRetrograde: false },
+      { name: 'Moon', rasi: 'Vrischika', rasiLord: 'Mars', house: 7, degree: 3, isRetrograde: false },
+    ],
+    currentDasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+    activeYogas: [],
+    mangalDosha: false,
+    additionalInfo: { luckyColor: 'Black', bestDirection: 'East', deity: 'X', animalSign: 'Y', birthStone: 'Z' },
     tzOffset: 330,
   })),
 }));

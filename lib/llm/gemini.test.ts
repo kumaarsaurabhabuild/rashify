@@ -7,11 +7,18 @@ global.fetch = mockFetch as never;
 
 const chart: Chart = {
   ayanamsa: 'Lahiri',
-  lagna: { sign: 'Vrishabha', degree: 12 },
-  sun: { name: 'Sun', sign: 'Mesha', house: 12, degree: 5, nakshatra: 'Ashwini', pada: 1 },
-  moon: { name: 'Moon', sign: 'Vrishchika', house: 7, degree: 3, nakshatra: 'Anuradha', pada: 2 },
-  planets: [],
-  dasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+  nakshatra: { name: 'Anuradha', pada: 2, lord: 'Saturn' },
+  moonSign: 'Vrischika',
+  sunSign: 'Mesha',
+  ascendant: { name: 'Ascendant', rasi: 'Vrishabha', rasiLord: 'Venus', house: 1, degree: 12, isRetrograde: false },
+  planets: [
+    { name: 'Sun', rasi: 'Mesha', rasiLord: 'Mars', house: 12, degree: 5, isRetrograde: false },
+    { name: 'Moon', rasi: 'Vrischika', rasiLord: 'Mars', house: 7, degree: 3, isRetrograde: false },
+  ],
+  currentDasha: { mahadasha: 'Saturn', antardasha: 'Venus', start: '2024-01-01', end: '2027-01-01' },
+  activeYogas: [],
+  mangalDosha: false,
+  additionalInfo: { luckyColor: 'Black', bestDirection: 'East', deity: 'X', animalSign: 'Y', birthStone: 'Z' },
   tzOffset: 330,
 };
 
@@ -76,8 +83,27 @@ describe('generateArchetype (OpenRouter)', () => {
     await expect(generateArchetype(chart, 'X')).rejects.toThrow('LLM_BAD');
   });
 
-  it('throws LLM_HTTP on 5xx', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 503, text: async () => 'busy' });
+  it('retries on transient 5xx then succeeds', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 504, text: async () => 'gateway timeout' })
+      .mockResolvedValueOnce(chatRes(JSON.stringify(goodArchetype)));
+    const out = await generateArchetype(chart, 'Saurabh');
+    expect(out.label).toBe(goodArchetype.label);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on 429 rate-limit then succeeds', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 429, text: async () => 'too many' })
+      .mockResolvedValueOnce(chatRes(JSON.stringify(goodArchetype)));
+    const out = await generateArchetype(chart, 'Saurabh');
+    expect(out.label).toBe(goodArchetype.label);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws LLM_HTTP after exhausting transient retries', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 503, text: async () => 'busy' });
     await expect(generateArchetype(chart, 'X')).rejects.toThrow(/LLM_HTTP_503/);
+    expect(mockFetch).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 });
