@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import posthog from 'posthog-js';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
@@ -10,7 +10,15 @@ declare global {
   interface Window { turnstile?: { render: (id: string, opts: object) => string }; }
 }
 
-export default function Landing() {
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading…</div>}>
+      <Landing />
+    </Suspense>
+  );
+}
+
+function Landing() {
   const router = useRouter();
   const params = useSearchParams();
   const referrer = params.get('ref');

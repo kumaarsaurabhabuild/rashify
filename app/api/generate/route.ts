@@ -18,7 +18,7 @@ const ReqZ = z.object({
   birthPlace: z.string().min(2).max(120),
   phoneE164: z.string().regex(/^\+91\d{10}$/),
   referrerSlug: z.string().optional().nullable(),
-  utm: z.record(z.string()).optional().nullable(),
+  utm: z.record(z.string(), z.string()).optional().nullable(),
   consent: z.literal(true),
   turnstileToken: z.string(),
 });
