@@ -8,23 +8,24 @@ export interface ShareCardProps {
 
 /* Element-driven palette: lagna sign → fire / earth / air / water gradient.
    12 lagna signs map to 4 visual families so 108 archetypes share 4 backgrounds.
-   Distinct enough to spark "ooh which one are YOU" curiosity in WA threads. */
-const ELEMENT: Record<string, { from: string; to: string; ink: string; accent: string; glyph: string }> = {
-  Mesha:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', glyph: '🔥' },
-  Simha:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', glyph: '🔥' },
-  Dhanu:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', glyph: '🔥' },
-  Vrishabha:{ from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', glyph: '◆' },
-  Kanya:    { from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', glyph: '◆' },
-  Makara:   { from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', glyph: '◆' },
-  Mithuna:  { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', glyph: '✦' },
-  Tula:     { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', glyph: '✦' },
-  Kumbha:   { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', glyph: '✦' },
-  Karka:    { from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', glyph: '☽' },
-  Vrischika:{ from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', glyph: '☽' },
-  Meena:    { from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', glyph: '☽' },
+   Distinct enough to spark "ooh which one are YOU" curiosity in WA threads.
+   Note: no Unicode glyphs — Satori (Vercel OG) bundled font has no emoji/symbols. */
+const ELEMENT: Record<string, { from: string; to: string; ink: string; accent: string; element: string }> = {
+  Mesha:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', element: 'FIRE' },
+  Simha:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', element: 'FIRE' },
+  Dhanu:    { from: '#ff7847', to: '#e63946', ink: '#fff7ed', accent: '#ffd166', element: 'FIRE' },
+  Vrishabha:{ from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', element: 'EARTH' },
+  Kanya:    { from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', element: 'EARTH' },
+  Makara:   { from: '#1f4d3a', to: '#3a8e6a', ink: '#f0fff4', accent: '#d4af37', element: 'EARTH' },
+  Mithuna:  { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', element: 'AIR' },
+  Tula:     { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', element: 'AIR' },
+  Kumbha:   { from: '#5b3c8a', to: '#a06ad9', ink: '#fdf4ff', accent: '#fbcfe8', element: 'AIR' },
+  Karka:    { from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', element: 'WATER' },
+  Vrischika:{ from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', element: 'WATER' },
+  Meena:    { from: '#0a3a5e', to: '#3a7ca5', ink: '#f0f9ff', accent: '#67e8f9', element: 'WATER' },
 };
 
-const FALLBACK = { from: '#3a0a14', to: '#7d1d2e', ink: '#f1e7d4', accent: '#c9a24a', glyph: '◆' };
+const FALLBACK = { from: '#3a0a14', to: '#7d1d2e', ink: '#f1e7d4', accent: '#c9a24a', element: 'COSMOS' };
 
 // Note: Satori (Vercel OG) requires explicit `display: flex` on every multi-child
 // div, and can't dynamically download Google fonts on Vercel without an explicit
@@ -50,13 +51,19 @@ export function ShareCard({ archetype: a }: ShareCardProps) {
       }} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 52, color: palette.accent, display: 'flex' }}>{palette.glyph}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <span style={{
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: 22, letterSpacing: 6, fontWeight: 700,
+            color: palette.from, background: palette.accent,
+            padding: '8px 14px',
+            display: 'flex',
+          }}>{palette.element}</span>
           <span style={{
             fontFamily: 'system-ui, sans-serif',
             fontSize: 22, letterSpacing: 8, fontWeight: 600,
             textTransform: 'uppercase', color: palette.accent, display: 'flex',
-          }}>RASHIFY · YOUR VEDIC ARCHETYPE</span>
+          }}>RASHIFY · VEDIC ARCHETYPE</span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 60 }}>
@@ -95,19 +102,22 @@ export function ShareCard({ archetype: a }: ShareCardProps) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18, zIndex: 1 }}>
-        {a.coreTraits.map((t) => (
+        {a.coreTraits.map((t, i) => (
           <div key={t} style={{
-            display: 'flex', alignItems: 'center', gap: 20,
+            display: 'flex', alignItems: 'center', gap: 24,
             background: 'rgba(255,255,255,0.12)',
             border: `1.5px solid ${palette.accent}88`,
-            padding: '20px 28px',
+            padding: '22px 32px',
             borderRadius: 999,
-            backdropFilter: 'blur(8px)',
           }}>
-            <span style={{ fontSize: 36, color: palette.accent, display: 'flex' }}>◆</span>
             <span style={{
               fontFamily: 'system-ui, sans-serif',
-              fontSize: 32, fontWeight: 500,
+              fontSize: 24, fontWeight: 800, letterSpacing: 2,
+              color: palette.accent, minWidth: 30, display: 'flex',
+            }}>0{i + 1}</span>
+            <span style={{
+              fontFamily: 'system-ui, sans-serif',
+              fontSize: 34, fontWeight: 500,
               color: palette.ink, display: 'flex',
             }}>{t}</span>
           </div>

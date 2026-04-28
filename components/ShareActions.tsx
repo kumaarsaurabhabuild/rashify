@@ -6,28 +6,27 @@ import { Events } from '@/lib/telemetry/events';
 export function ShareActions({ slug, label, appUrl }: { slug: string; label: string; appUrl: string }) {
   const personalUrl = `${appUrl}/u/${slug}?ref=${slug}`;
   const ogUrl = `${appUrl}/api/og?slug=${slug}`;
-  const shareText = `I am ${label} according to Vedic astrology — discover yours: ${personalUrl}`;
   const [busy, setBusy] = useState<'wa' | 'dl' | null>(null);
+  void label; // kept on signature for caller compat
 
   const wa = async () => {
     posthog.capture(Events.SHARE_WA_CLICK, { slug });
     setBusy('wa');
     try {
-      // Web Share Level 2: attach PNG + text natively (mobile WA gets card image).
+      // Web Share Level 2: image-only (no text). Mobile WA receives the card as a media attachment.
       const res = await fetch(ogUrl, { cache: 'force-cache' });
       const blob = await res.blob();
       const file = new File([blob], `rashify-${slug}.png`, { type: 'image/png' });
 
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: shareText });
+        await navigator.share({ files: [file] });
         return;
       }
-      // Desktop / unsupported — fall back to wa.me text-only deeplink.
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+      // Desktop / unsupported — wa.me can't attach images. Send link only as fallback.
+      window.open(`https://wa.me/?text=${encodeURIComponent(personalUrl)}`, '_blank');
     } catch (e) {
-      // User cancel or network — silent fallback to text deeplink.
       if ((e as Error)?.name !== 'AbortError') {
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+        window.open(`https://wa.me/?text=${encodeURIComponent(personalUrl)}`, '_blank');
       }
     } finally {
       setBusy(null);
