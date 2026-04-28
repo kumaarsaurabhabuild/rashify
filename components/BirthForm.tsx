@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { ConsentCheckbox } from './ConsentCheckbox';
+import { EditorialDateField } from './EditorialDateField';
+import { EditorialTimeField } from './EditorialTimeField';
 
 export interface BirthFormValue {
   name: string;
@@ -56,28 +58,8 @@ export function BirthForm({
         />
       </label>
 
-      <div className="grid grid-2 grid-cols-2 gap-6 sm:gap-7">
-        <label className="flex flex-col">
-          <span className="label">Date of birth</span>
-          <input
-            type="date"
-            className="field"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            required
-          />
-        </label>
-        <label className="flex flex-col">
-          <span className="label">Time of birth</span>
-          <input
-            type="time"
-            className="field"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
-        </label>
-      </div>
+      <EditorialDateField value={dob} onChange={setDob} />
+      <EditorialTimeField value={time} onChange={setTime} />
 
       <label className="flex flex-col">
         <span className="label">Place of birth</span>
