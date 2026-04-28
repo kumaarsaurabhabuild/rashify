@@ -1,11 +1,16 @@
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
-import { ArchetypeZ } from '@/lib/astro/chart-types';
-import { getCardBySlug } from '@/lib/db/leads';
+import { ArchetypeZ, DomainTeasersZ, DomainFullZ, DomainCitationsZ } from '@/lib/astro/chart-types';
+import type { DomainFull as DomainFullType, DomainCitations as DomainCitationsType } from '@/lib/astro/chart-types';
+import { getCardBySlug, getUnlockedCardBySlug } from '@/lib/db/leads';
 import { ShareCard } from '@/components/ShareCard';
 import { ShareActions } from '@/components/ShareActions';
 import { BrandMark } from '@/components/BrandMark';
 import { PendingReading } from '@/components/PendingReading';
+import { DomainTeasers } from '@/components/DomainTeasers';
+import { DomainLocked } from '@/components/DomainLocked';
+import { DomainFull } from '@/components/DomainFull';
+import { ResultUnlockButton } from '@/components/ResultUnlockButton';
 import { Events } from '@/lib/telemetry/events';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +43,18 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
   const parsed = ArchetypeZ.safeParse(card.archetype);
   if (!parsed.success) notFound();
   const a = parsed.data;
+
+  const teasersParse = DomainTeasersZ.safeParse(card.domain_teasers);
+  const teasers = teasersParse.success ? teasersParse.data : null;
+
+  // Server-side unlock state (defense in depth + return-visit fast-path)
+  const unlocked = await getUnlockedCardBySlug(slug);
+  let fullPayload: { full: DomainFullType; citations: DomainCitationsType } | null = null;
+  if (unlocked) {
+    const f = DomainFullZ.safeParse(unlocked.domain_full);
+    const c = DomainCitationsZ.safeParse(unlocked.citations);
+    if (f.success && c.success) fullPayload = { full: f.data, citations: c.data };
+  }
 
   const date = new Date(card.created_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -184,6 +201,21 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
         <div className="reveal reveal-6" style={{ marginTop: 48 }}>
           <ShareActions slug={slug} label={a.label} appUrl={appUrl} />
         </div>
+
+        {teasers && <DomainTeasers slug={slug} teasers={teasers} />}
+
+        {fullPayload ? (
+          <section className="reveal reveal-6" style={{ marginTop: 32 }}>
+            <DomainFull full={fullPayload.full} citations={fullPayload.citations} />
+          </section>
+        ) : teasers ? (
+          <section className="reveal reveal-6" style={{ marginTop: 32 }}>
+            <DomainLocked teasers={teasers} />
+            <div style={{ marginTop: 32, textAlign: 'center' }}>
+              <ResultUnlockButton slug={slug} label={a.label} appUrl={appUrl} />
+            </div>
+          </section>
+        ) : null}
 
         <details
           className="reveal reveal-6"
