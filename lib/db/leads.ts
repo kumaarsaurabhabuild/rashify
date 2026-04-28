@@ -26,11 +26,18 @@ export async function insertReadyLead(
 ): Promise<{ slug: string; isNew: boolean }> {
   const sb = serverClient();
 
+  // Only dedupe against complete (ready) rows. Old broken rows from
+  // earlier async-pipeline tests (status=pending/processing/failed,
+  // archetype=null) shouldn't shadow new submissions.
   const existing = await sb
     .from('leads')
     .select('slug')
     .eq('phone_e164', input.phoneE164)
+    .eq('status', 'ready')
+    .not('archetype', 'is', null)
     .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (existing.data?.slug) return { slug: existing.data.slug, isNew: false };
