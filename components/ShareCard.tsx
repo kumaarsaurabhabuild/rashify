@@ -42,11 +42,21 @@ export function ShareCard({ archetype: a }: ShareCardProps) {
         padding: 80,
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         position: 'relative', overflow: 'hidden',
+        borderRadius: 48,
+        border: `2px solid ${palette.accent}66`,
+        boxShadow: `inset 0 0 240px rgba(0,0,0,0.35), inset 0 0 80px ${palette.accent}22`,
       }}
     >
+      {/* Top-right warm glow */}
       <div style={{
         position: 'absolute', top: -200, right: -200, width: 700, height: 700,
         background: `radial-gradient(circle, ${palette.accent}33 0%, transparent 60%)`,
+        display: 'flex',
+      }} />
+      {/* Bottom-left echo glow for depth */}
+      <div style={{
+        position: 'absolute', bottom: -300, left: -250, width: 800, height: 800,
+        background: `radial-gradient(circle, ${palette.from}66 0%, transparent 65%)`,
         display: 'flex',
       }} />
 
@@ -81,12 +91,12 @@ export function ShareCard({ archetype: a }: ShareCardProps) {
       </div>
 
       <div style={{
-        background: '#ffffff',
+        background: '#fefcf8',
         color: '#1a1a1a',
         padding: '56px 64px',
-        borderRadius: 6,
+        borderRadius: 28,
         display: 'flex', flexDirection: 'column', gap: 20,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.25)',
+        boxShadow: `0 40px 100px rgba(0,0,0,0.35), 0 0 0 1px ${palette.accent}55`,
         zIndex: 1,
       }}>
         <span style={{
