@@ -1198,8 +1198,8 @@ Run engine locally (.venv active):
 
 ```bash
 SUPABASE_URL=https://btukudnzxhgfinguqjmc.supabase.co \
-SUPABASE_SERVICE_ROLE_KEY=<REDACTED_SUPABASE_SERVICE_ROLE_KEY> \
-OPENROUTER_API_KEY=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 \
+SUPABASE_SERVICE_ROLE_KEY=<SUPABASE_SERVICE_ROLE_KEY> \
+OPENROUTER_API_KEY=<OPENROUTER_API_KEY> \
 OPENROUTER_MODEL=deepseek/deepseek-chat \
 uvicorn app:app --port 8080
 ```
@@ -1263,7 +1263,7 @@ In HF Space UI: **Settings** → **Variables and secrets** → **New secret**:
 | Key | Value |
 |---|---|
 | `SUPABASE_URL` | `https://btukudnzxhgfinguqjmc.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | `<REDACTED_SUPABASE_SERVICE_ROLE_KEY>` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `<SUPABASE_SERVICE_ROLE_KEY>` |
 | `OPENROUTER_API_KEY` | `sk-or-v1-...` |
 | `OPENROUTER_MODEL` | `deepseek/deepseek-chat` |
 
