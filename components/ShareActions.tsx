@@ -27,27 +27,38 @@ export function ShareActions({ slug, label, appUrl }: { slug: string; label: str
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <span className="eyebrow" style={{ textAlign: 'center' }}>Forward this reading</span>
 
+      {/* Primary CTA — WhatsApp send (full-width on mobile) */}
+      <button
+        onClick={wa}
+        className="btn-primary shimmer"
+        style={{ width: '100%', maxWidth: 480, alignSelf: 'center' }}
+      >
+        <span>Send on WhatsApp</span>
+        <span aria-hidden style={{ fontSize: 16 }}>↗</span>
+      </button>
+
+      {/* Secondary actions — 2-col on mobile, row on wider */}
       <div
+        className="grid grid-2"
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          gap: 12,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 10,
+          maxWidth: 480,
+          width: '100%',
+          alignSelf: 'center',
         }}
       >
-        <button onClick={wa} className="btn-primary shimmer" style={{ fontSize: 18, padding: '14px 22px' }}>
-          <span>Send on WhatsApp</span>
-          <span aria-hidden style={{ fontSize: 16 }}>↗</span>
-        </button>
-        <button onClick={dl} className="btn-ghost">Save image</button>
-        <button onClick={cp} className="btn-ghost">Copy link</button>
+        <button onClick={dl} className="btn-ghost" style={{ padding: '12px 8px', fontSize: 11 }}>Save image</button>
+        <button onClick={cp} className="btn-ghost" style={{ padding: '12px 8px', fontSize: 11 }}>Copy link</button>
         <button
           onClick={cmp}
           className="btn-ghost"
           disabled
           title="Coming soon"
+          style={{ padding: '12px 8px', fontSize: 11 }}
         >
-          Compare with friend
+          Compare
         </button>
       </div>
     </div>

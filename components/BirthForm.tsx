@@ -56,7 +56,7 @@ export function BirthForm({
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-7">
+      <div className="grid grid-2 grid-cols-2 gap-6 sm:gap-7">
         <label className="flex flex-col">
           <span className="label">Date of birth</span>
           <input
@@ -92,11 +92,17 @@ export function BirthForm({
 
       <label className="flex flex-col">
         <span className="label">WhatsApp number</span>
-        <div className="flex items-baseline gap-3 border-b border-[var(--gold-dim)] focus-within:border-[var(--gold)] transition-colors">
-          <span style={{ color: 'var(--parchment-fade)', fontSize: 18 }}>+91</span>
+        <div
+          className="flex items-baseline gap-3 transition-colors"
+          style={{
+            borderBottom: '1px solid var(--ink-faint)',
+            minHeight: 48,
+          }}
+        >
+          <span style={{ color: 'var(--ink-fade)', fontSize: 18 }}>+91</span>
           <input
             className="field"
-            style={{ borderBottom: 'none', paddingBottom: 10 }}
+            style={{ borderBottom: 'none' }}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
@@ -113,7 +119,7 @@ export function BirthForm({
         <div
           role="alert"
           style={{
-            color: '#e6c270',
+            color: '#a35a23',
             fontFamily: 'var(--font-ui)',
             fontSize: 13,
             letterSpacing: '0.04em',

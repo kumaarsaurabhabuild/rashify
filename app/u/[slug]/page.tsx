@@ -30,20 +30,27 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
         if (window.posthog) window.posthog.capture('${Events.RESULT_VIEW}', { slug: '${slug}' });
       `}</Script>
 
-      <header className="px-8 sm:px-14 py-8 flex items-center justify-between">
+      <header
+        className="flex items-center justify-between py-6 sm:py-8"
+        style={{ paddingInline: 'clamp(20px, 5vw, 56px)' }}
+      >
         <BrandMark size="md" />
         <a
           href="/"
           className="eyebrow"
-          style={{ color: 'var(--parchment-fade)', textDecoration: 'none' }}
+          style={{ color: 'var(--ink-soft)', textDecoration: 'none' }}
         >
-          ← Begin a new reading
+          ← <span className="hidden sm:inline">Begin a new reading</span>
+          <span className="sm:hidden">New</span>
         </a>
       </header>
 
       <article
-        className="column-prose w-full mx-auto px-8 sm:px-14 pb-20 flex flex-col"
-        style={{ paddingTop: 24 }}
+        className="column-prose w-full mx-auto pb-16 sm:pb-20 flex flex-col"
+        style={{
+          paddingInline: 'clamp(20px, 5vw, 56px)',
+          paddingTop: 16,
+        }}
       >
         <div className="reveal reveal-1" style={{ textAlign: 'center' }}>
           <span className="eyebrow">A reading prepared on {date}</span>
@@ -53,11 +60,11 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           className="font-display reveal reveal-2"
           style={{
             textAlign: 'center',
-            fontSize: 'clamp(40px, 5.4vw, 76px)',
+            fontSize: 'clamp(36px, 5.4vw, 76px)',
             lineHeight: 1.05,
-            margin: '24px 0 12px',
+            margin: '20px 0 12px',
             fontWeight: 400,
-            color: 'var(--parchment)',
+            color: 'var(--ink)',
           }}
         >
           {a.label}
@@ -65,7 +72,7 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
 
         <p
           className="font-sanskrit reveal reveal-3"
-          style={{ textAlign: 'center', fontSize: 28, color: 'var(--gold)', margin: 0 }}
+          style={{ textAlign: 'center', fontSize: 'clamp(22px, 3vw, 28px)', color: 'var(--gold)', margin: 0 }}
         >
           {a.sanskritLabel}
         </p>
@@ -75,9 +82,9 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           style={{
             textAlign: 'center',
             marginTop: 20,
-            fontSize: 19,
+            fontSize: 'clamp(16px, 2.2vw, 19px)',
             lineHeight: 1.55,
-            color: 'var(--parchment-dim)',
+            color: 'var(--ink-soft)',
             maxWidth: 520,
             alignSelf: 'center',
             fontStyle: 'italic',
@@ -86,73 +93,82 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           {a.oneLiner}
         </p>
 
+        {/* Card preview — responsive scale */}
         <div
           className="reveal reveal-5"
-          style={{ marginTop: 56, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}
+          style={{ marginTop: 40, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}
         >
           <div
+            className="card-scale"
             style={{
-              transform: 'scale(0.42)',
               transformOrigin: 'top center',
-              height: 1920 * 0.42,
               width: 1080,
             }}
           >
             <ShareCard archetype={a} slug={slug} appUrl={appUrl} />
           </div>
         </div>
+        <style>{`
+          .card-scale { transform: scale(0.42); height: ${1920 * 0.42}px; }
+          @media (max-width: 768px) {
+            .card-scale { transform: scale(0.30); height: ${1920 * 0.30}px; }
+          }
+          @media (max-width: 480px) {
+            .card-scale { transform: scale(0.24); height: ${1920 * 0.24}px; }
+          }
+        `}</style>
 
         <div
-          className="reveal reveal-5"
+          className="reveal reveal-5 grid grid-2"
           style={{
-            marginTop: 32,
+            marginTop: 28,
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: 56,
+            gap: 40,
             borderTop: '1px solid var(--gold-dim)',
             borderBottom: '1px solid var(--gold-dim)',
-            padding: '32px 0',
+            padding: '28px 0',
           }}
         >
           <div>
             <span className="eyebrow">Strength</span>
-            <p style={{ marginTop: 12, fontSize: 22, fontFamily: 'var(--font-display)', lineHeight: 1.4 }}>
+            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)', lineHeight: 1.4 }}>
               {a.strengths.join(' · ')}
             </p>
           </div>
           <div>
             <span className="eyebrow">Growth edge</span>
-            <p style={{ marginTop: 12, fontSize: 22, fontFamily: 'var(--font-display)', lineHeight: 1.4 }}>
+            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)', lineHeight: 1.4 }}>
               {a.growthEdges.join(' · ')}
             </p>
           </div>
         </div>
 
         <div
-          className="reveal reveal-6"
-          style={{ marginTop: 32, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56 }}
+          className="reveal reveal-6 grid grid-2"
+          style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}
         >
           <div>
             <span className="eyebrow">Power window</span>
-            <p style={{ marginTop: 12, fontSize: 22, fontFamily: 'var(--font-display)' }}>
+            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)' }}>
               {a.powerWindow}
             </p>
           </div>
           <div>
             <span className="eyebrow">Lucky</span>
-            <p style={{ marginTop: 12, fontSize: 22, fontFamily: 'var(--font-display)' }}>
+            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)' }}>
               {a.luckyColor} · {a.luckyNumber}
             </p>
           </div>
         </div>
 
-        <div className="reveal reveal-6" style={{ marginTop: 56 }}>
+        <div className="reveal reveal-6" style={{ marginTop: 48 }}>
           <ShareActions slug={slug} label={a.label} appUrl={appUrl} />
         </div>
 
         <details
           className="reveal reveal-6"
-          style={{ marginTop: 56, borderTop: '1px solid var(--gold-dim)', paddingTop: 24 }}
+          style={{ marginTop: 48, borderTop: '1px solid var(--gold-dim)', paddingTop: 24 }}
         >
           <summary className="eyebrow" style={{ cursor: 'pointer', color: 'var(--gold)', listStyle: 'none' }}>
             Why we say this
@@ -161,7 +177,7 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
             style={{
               marginTop: 18, listStyle: 'none', padding: 0,
               display: 'grid', gap: 10,
-              fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--parchment-dim)',
+              fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--ink-soft)',
             }}
           >
             <Row label="System">{a.provenance.system}</Row>
@@ -175,9 +191,9 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
         <div
           className="reveal reveal-6"
           style={{
-            marginTop: 64, textAlign: 'center',
+            marginTop: 56, textAlign: 'center',
             fontFamily: 'var(--font-display)', fontStyle: 'italic',
-            fontSize: 22, color: 'var(--parchment-fade)',
+            fontSize: 'clamp(18px, 2.6vw, 22px)', color: 'var(--ink-fade)',
           }}
         >
           Forward this to someone who would want to know theirs.
@@ -185,13 +201,17 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
       </article>
 
       <footer
-        className="px-8 sm:px-14 py-8 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--gold-dim)', color: 'var(--parchment-fade)' }}
+        className="flex flex-col sm:flex-row gap-3 sm:gap-0 items-center sm:justify-between py-6 sm:py-8"
+        style={{
+          paddingInline: 'clamp(20px, 5vw, 56px)',
+          borderTop: '1px solid var(--gold-dim)',
+          color: 'var(--ink-fade)',
+        }}
       >
         <span className="eyebrow">◆ MMXXVI · Rashify</span>
         <nav style={{ display: 'flex', gap: 24, fontFamily: 'var(--font-ui)', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          <a href="/privacy" style={{ color: 'var(--parchment-dim)' }}>Privacy</a>
-          <a href="/terms" style={{ color: 'var(--parchment-dim)' }}>Terms</a>
+          <a href="/privacy" style={{ color: 'var(--ink-soft)' }}>Privacy</a>
+          <a href="/terms" style={{ color: 'var(--ink-soft)' }}>Terms</a>
         </nav>
       </footer>
     </main>
@@ -200,9 +220,17 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <li style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 20 }}>
-      <span className="eyebrow" style={{ color: 'var(--parchment-fade)' }}>{label}</span>
+    <li
+      className="prov-row"
+      style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 20 }}
+    >
+      <span className="eyebrow" style={{ color: 'var(--ink-fade)' }}>{label}</span>
       <span>{children}</span>
+      <style>{`
+        @media (max-width: 640px) {
+          .prov-row { grid-template-columns: 1fr !important; gap: 4px !important; }
+        }
+      `}</style>
     </li>
   );
 }

@@ -13,7 +13,7 @@ export function ConsentCheckbox({
         fontFamily: 'var(--font-body)',
         fontSize: 14,
         lineHeight: 1.55,
-        color: error ? '#e6c270' : 'var(--parchment-dim)',
+        color: error ? '#a35a23' : 'var(--ink-soft)',
       }}
     >
       <input
@@ -25,9 +25,10 @@ export function ConsentCheckbox({
         style={{
           marginTop: 4,
           accentColor: 'var(--gold)',
-          width: 16,
-          height: 16,
+          width: 18,
+          height: 18,
           flex: 'none',
+          cursor: 'pointer',
         }}
       />
       <span>

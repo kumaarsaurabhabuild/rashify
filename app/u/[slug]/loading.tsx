@@ -9,7 +9,7 @@ export default function Loading() {
             fontFamily: 'var(--font-display)',
             fontStyle: 'italic',
             fontSize: 28,
-            color: 'var(--parchment-dim)',
+            color: 'var(--ink-soft)',
           }}
         >
           Reading your stars

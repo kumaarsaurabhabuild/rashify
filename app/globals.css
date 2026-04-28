@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
-/* === Cosmic Manuscript design tokens === */
+/* === Cosmic Manuscript — Daytime mode design tokens === */
 :root {
-  /* Surfaces */
-  --ink:           #0e1230;   /* deep night-sky */
-  --ink-soft:      #161a3c;   /* hover surface */
-  --ink-deeper:    #08092c;   /* card recess */
+  /* Surfaces — warm parchment palette */
+  --parchment:       #f7efdc;   /* primary surface (warm cream) */
+  --parchment-soft:  #fbf6e8;   /* recess / inset card */
+  --parchment-warm:  #efe4c8;   /* hover / divider tint */
 
-  /* Text + accents */
-  --parchment:     #f1e7d4;   /* ivory body */
-  --parchment-dim: #f1e7d4cc; /* secondary text */
-  --parchment-fade:#f1e7d488; /* tertiary */
-  --gold:          #c9a24a;   /* antique gold */
-  --gold-bright:   #e6c270;   /* hover gold */
-  --gold-dim:      #c9a24a44; /* hairline */
-  --gold-faint:    #c9a24a18; /* watermark */
+  /* Ink (text) — deep warm maroon */
+  --ink:             #2d1517;   /* primary text */
+  --ink-soft:        #4d2a2c;   /* secondary text */
+  --ink-fade:        #2d151799; /* tertiary text */
+  --ink-faint:       #2d151733; /* hairline */
 
-  /* Type scale (display first) */
+  /* Accents — antique gold + spiritual lavender */
+  --gold:            #b3873a;   /* deeper gold for light bg */
+  --gold-bright:     #d8a957;   /* hover gold */
+  --gold-dim:        #b3873a44; /* dim hairline */
+  --gold-faint:      #b3873a18; /* watermark */
+  --lotus:           #8b6fbf;   /* spiritual lavender accent */
+  --lotus-soft:      #b8a6d9;
+
+  /* Type scale */
   --font-display:  var(--font-cormorant), Cormorant Garamond, "Times New Roman", serif;
   --font-sanskrit: var(--font-tiro), Tiro Devanagari Hindi, Noto Serif Devanagari, serif;
   --font-body:     var(--font-newsreader), Newsreader, "New York", Charter, Georgia, serif;
@@ -27,8 +32,8 @@
 }
 
 @theme inline {
-  --color-ink: var(--ink);
   --color-parchment: var(--parchment);
+  --color-ink: var(--ink);
   --color-gold: var(--gold);
   --font-display: var(--font-display);
   --font-sanskrit: var(--font-sanskrit);
@@ -38,15 +43,15 @@
 /* === Base === */
 html, body { height: 100%; }
 body {
-  background: var(--ink);
-  color: var(--parchment);
+  background: var(--parchment);
+  color: var(--ink);
   font-family: var(--font-body);
   font-feature-settings: "kern", "liga", "calt", "ss01";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-::selection { background: var(--gold); color: var(--ink); }
+::selection { background: var(--gold); color: var(--parchment); }
 
 /* === Typography utilities === */
 .font-display  { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
@@ -67,21 +72,22 @@ body {
   background: linear-gradient(90deg, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent);
 }
 
-/* === Constellation backdrop === */
+/* === Celestial backdrop — daytime sky === */
 .celestial {
   position: fixed; inset: 0; z-index: -1; overflow: hidden;
   background:
-    radial-gradient(ellipse at 70% 20%, var(--ink-soft) 0%, transparent 55%),
-    radial-gradient(ellipse at 20% 80%, var(--ink-deeper) 0%, transparent 50%),
-    var(--ink);
+    radial-gradient(ellipse 80% 60% at 70% 15%, var(--parchment-soft) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 20% 85%, var(--parchment-warm) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(184, 166, 217, 0.10) 0%, transparent 70%),
+    var(--parchment);
 }
-.celestial svg { width: 100%; height: 100%; opacity: 0.55; }
-.celestial-pan { animation: celestial-pan 90s linear infinite; transform-origin: center; }
+.celestial svg { width: 100%; height: 100%; opacity: 0.50; }
+.celestial-pan { animation: celestial-pan 120s linear infinite; transform-origin: center; }
 @keyframes celestial-pan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.star { fill: var(--gold); }
-.star-dim { fill: var(--parchment-fade); }
-.constellation-line { stroke: var(--gold-dim); stroke-width: 0.5; fill: none; }
+.star { fill: var(--gold); opacity: 0.55; }
+.star-dim { fill: var(--ink-soft); opacity: 0.18; }
+.constellation-line { stroke: var(--gold-dim); stroke-width: 0.4; fill: none; }
 
 /* === Reveal === */
 .reveal { opacity: 0; transform: translateY(8px); animation: reveal 1s var(--ease-quill) forwards; }
@@ -96,9 +102,7 @@ body {
 }
 
 /* === Gold-leaf shimmer === */
-.shimmer {
-  position: relative; overflow: hidden; isolation: isolate;
-}
+.shimmer { position: relative; overflow: hidden; isolation: isolate; }
 .shimmer::after {
   content: "";
   position: absolute; inset: 0; z-index: 0;
@@ -108,27 +112,31 @@ body {
   transition: opacity 0.4s ease, background-position 0.9s var(--ease-quill);
   pointer-events: none;
 }
-.shimmer:hover::after { opacity: 0.30; background-position: -120% 0; }
+.shimmer:hover::after { opacity: 0.35; background-position: -120% 0; }
 .shimmer > * { position: relative; z-index: 1; }
 
 /* === Form === */
 .field {
   background: transparent;
-  color: var(--parchment);
+  color: var(--ink);
   border: none;
-  border-bottom: 1px solid var(--gold-dim);
-  padding: 8px 0 10px;
+  border-bottom: 1px solid var(--ink-faint);
+  padding: 12px 0;
   font-family: var(--font-body);
   font-size: 18px;
   outline: none;
   width: 100%;
   transition: border-color 0.3s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Touch target */
+  min-height: 48px;
 }
 .field:focus { border-bottom-color: var(--gold); }
-.field::placeholder { color: var(--parchment-fade); }
+.field::placeholder { color: var(--ink-fade); opacity: 0.5; }
 .field:-webkit-autofill {
-  -webkit-text-fill-color: var(--parchment);
-  -webkit-box-shadow: 0 0 0 1000px transparent inset;
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--parchment-soft) inset;
   transition: background-color 9999s ease-in-out 0s;
 }
 
@@ -146,38 +154,42 @@ body {
 .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 12px;
   padding: 18px 28px;
-  background: var(--parchment);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--parchment);
   font-family: var(--font-display);
   font-size: 22px;
   letter-spacing: 0.02em;
-  border: 1px solid var(--parchment);
+  border: 1px solid var(--ink);
   border-radius: 0;
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease, transform 0.3s var(--ease-quill);
+  /* Touch target */
+  min-height: 56px;
+  width: 100%;
 }
-.btn-primary:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
+.btn-primary:hover { background: var(--gold); border-color: var(--gold); color: var(--parchment); }
 .btn-primary:active { transform: translateY(1px); }
 .btn-primary[disabled] { opacity: 0.5; cursor: not-allowed; }
 
 .btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 12px 18px;
+  padding: 14px 20px;
   background: transparent;
-  color: var(--parchment);
+  color: var(--ink);
   font-family: var(--font-ui);
   font-size: 13px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   border: 1px solid var(--gold-dim);
   cursor: pointer;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+  min-height: 48px;
 }
-.btn-ghost:hover:not([disabled]) { border-color: var(--gold); color: var(--gold-bright); }
+.btn-ghost:hover:not([disabled]) { border-color: var(--gold); color: var(--gold); background: var(--parchment-soft); }
 .btn-ghost[disabled] { opacity: 0.4; cursor: not-allowed; }
 
 /* === Editorial spacing === */
-.column-narrow { max-width: 520px; }
+.column-narrow { max-width: 520px; margin-inline: auto; }
 .column-prose  { max-width: 720px; margin-inline: auto; }
 
 /* === Animated ellipsis === */
@@ -194,26 +206,46 @@ body {
 /* === Prose pages (privacy/terms) === */
 .prose-page h1 {
   font-family: var(--font-display);
-  font-size: clamp(40px, 4vw, 64px);
+  font-size: clamp(36px, 4vw, 64px);
   font-weight: 400;
   letter-spacing: -0.01em;
   margin: 0 0 28px;
-  color: var(--parchment);
+  color: var(--ink);
 }
 .prose-page h2 {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: clamp(22px, 2.5vw, 28px);
   font-style: italic;
   font-weight: 400;
-  margin: 56px 0 14px;
-  color: var(--gold-bright);
+  margin: 48px 0 14px;
+  color: var(--gold);
 }
 .prose-page p, .prose-page ul, .prose-page li {
   font-family: var(--font-body);
   font-size: 17px;
   line-height: 1.7;
-  color: var(--parchment-dim);
+  color: var(--ink-soft);
 }
 .prose-page ul { padding-left: 24px; margin: 14px 0 24px; }
 .prose-page li { margin-bottom: 6px; }
 .prose-page a { color: var(--gold); text-underline-offset: 3px; }
+
+/* === Mobile responsive === */
+@media (max-width: 768px) {
+  .label { font-size: 10px; letter-spacing: 0.22em; }
+  .eyebrow { font-size: 10px; letter-spacing: 0.24em; }
+  .field { font-size: 16px; /* prevents iOS zoom-on-focus */ }
+  .btn-primary { font-size: 18px; padding: 16px 20px; }
+  .gold-rule { margin-block: 24px; }
+}
+
+/* Stack 2-col grids on mobile */
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .pad-mobile { padding-left: 20px !important; padding-right: 20px !important; }
+}
+
+/* Tap highlight tint */
+@media (hover: none) {
+  .btn-primary:active, .btn-ghost:active { background: var(--gold) !important; color: var(--parchment) !important; }
+}

@@ -30,7 +30,7 @@ export default function PreviewCard() {
     <main className="min-h-screen flex flex-col">
       <header className="px-8 sm:px-14 py-8 flex items-center justify-between">
         <BrandMark size="md" />
-        <a href="/" className="eyebrow" style={{ color: 'var(--parchment-fade)', textDecoration: 'none' }}>
+        <a href="/" className="eyebrow" style={{ color: 'var(--ink-fade)', textDecoration: 'none' }}>
           ← Back
         </a>
       </header>
@@ -48,7 +48,7 @@ export default function PreviewCard() {
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
             fontSize: 16,
-            color: 'var(--parchment-fade)',
+            color: 'var(--ink-fade)',
             marginTop: 8,
             textAlign: 'center',
           }}

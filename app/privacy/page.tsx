@@ -7,7 +7,7 @@ export default function Privacy() {
     <main className="min-h-screen flex flex-col">
       <header className="px-8 sm:px-14 py-8 flex items-center justify-between">
         <BrandMark size="md" />
-        <a href="/" className="eyebrow" style={{ color: 'var(--parchment-fade)', textDecoration: 'none' }}>
+        <a href="/" className="eyebrow" style={{ color: 'var(--ink-fade)', textDecoration: 'none' }}>
           ← Begin a reading
         </a>
       </header>
@@ -66,12 +66,12 @@ export default function Privacy() {
 
       <footer
         className="px-8 sm:px-14 py-8 flex items-center justify-between"
-        style={{ borderTop: '1px solid var(--gold-dim)', color: 'var(--parchment-fade)' }}
+        style={{ borderTop: '1px solid var(--gold-dim)', color: 'var(--ink-fade)' }}
       >
         <span className="eyebrow">◆ MMXXVI · Rashify</span>
         <nav style={{ display: 'flex', gap: 24, fontFamily: 'var(--font-ui)', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          <a href="/privacy" style={{ color: 'var(--parchment-dim)' }}>Privacy</a>
-          <a href="/terms" style={{ color: 'var(--parchment-dim)' }}>Terms</a>
+          <a href="/privacy" style={{ color: 'var(--ink-soft)' }}>Privacy</a>
+          <a href="/terms" style={{ color: 'var(--ink-soft)' }}>Terms</a>
         </nav>
       </footer>
     </main>
