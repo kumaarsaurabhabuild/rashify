@@ -49,14 +49,24 @@ describe('fetchChart', () => {
     expect(out.tzOffset).toBe(330);
   });
 
-  it('throws PROKERALA_DOWN on chart 5xx', async () => {
+  it('throws PROKERALA_5XX_502 on chart 502', async () => {
     mockFetch
       .mockResolvedValueOnce(tokenRes())
       .mockResolvedValueOnce({ ok: false, status: 502 })
       .mockResolvedValueOnce({ ok: true, json: async () => planetsFixture });
     await expect(
       fetchChart({ datetime: '1995-01-01T14:30:00+05:30', lat: 0, lon: 0, tzOffset: 0 }),
-    ).rejects.toThrow('PROKERALA_DOWN');
+    ).rejects.toThrow('PROKERALA_5XX_502');
+  });
+
+  it('throws PROKERALA_RATE_LIMIT on 429', async () => {
+    mockFetch
+      .mockResolvedValueOnce(tokenRes())
+      .mockResolvedValueOnce({ ok: false, status: 429 })
+      .mockResolvedValueOnce({ ok: true, json: async () => planetsFixture });
+    await expect(
+      fetchChart({ datetime: '1995-01-01T14:30:00+05:30', lat: 0, lon: 0, tzOffset: 0 }),
+    ).rejects.toThrow('PROKERALA_RATE_LIMIT');
   });
 
   it('throws PROKERALA_AUTH_FAILED on token 4xx', async () => {

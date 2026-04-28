@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const archetype = {
-  label: 'The Slow Architect', sanskritLabel: 'Prithvi Shilpi',
-  coreTraits: ['a','b','c'], strengths: ['x','y','z'], growthEdges: ['p','q'],
-  luckyColor: 'olive', luckyNumber: 6, powerWindow: '8 AM - 12 PM', oneLiner: 'o',
-  provenance: { ayanamsa: 'Lahiri', system: 'Vedic sidereal', nakshatra: 'Anuradha', lagna: 'Vrishabha', currentDasha: 'Saturn-Venus' },
-};
-
-const { generateArchetype, insertOrFetchLead } = vi.hoisted(() => ({
-  generateArchetype: vi.fn(),
-  insertOrFetchLead: vi.fn(),
+const { insertReadyLead, sendArchetype } = vi.hoisted(() => ({
+  insertReadyLead: vi.fn(),
+  sendArchetype: vi.fn(),
 }));
 
 vi.mock('@/lib/astro/geocode', () => ({
@@ -33,22 +26,19 @@ vi.mock('@/lib/astro/prokerala', () => ({
     tzOffset: 330,
   })),
 }));
-vi.mock('@/lib/llm/gemini', () => ({ generateArchetype }));
-vi.mock('@/lib/llm/fallback-archetype', () => ({ fallbackArchetype: () => archetype }));
-vi.mock('@/lib/db/leads', () => ({ insertOrFetchLead }));
-vi.mock('@/lib/wa/aisensy', () => ({ sendArchetype: vi.fn(async () => ({ status: 'queued' })) }));
+vi.mock('@/lib/db/leads', () => ({ insertReadyLead }));
+vi.mock('@/lib/wa/aisensy', () => ({ sendArchetype }));
 vi.mock('@/lib/telemetry/posthog', () => ({ trackServer: vi.fn(), flushTelemetry: vi.fn() }));
-// turnstile verify always passes in tests
 vi.mock('@/lib/util/turnstile', () => ({ verifyTurnstile: vi.fn(async () => true) }));
 
 import { POST } from './route';
 
 beforeEach(() => {
-  generateArchetype.mockReset();
-  generateArchetype.mockImplementation(async () => archetype);
-  insertOrFetchLead.mockReset();
-  insertOrFetchLead.mockImplementation(async () => ({ slug: 'saurabh-abc1', isNew: true }));
-  process.env.NEXT_PUBLIC_APP_URL = 'https://rashify.in';
+  insertReadyLead.mockReset();
+  insertReadyLead.mockImplementation(async () => ({ slug: 'saurabh-abc1', isNew: true }));
+  sendArchetype.mockReset();
+  sendArchetype.mockResolvedValue({ status: 'queued' });
+  process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
 });
 
 function req(body: object) {
@@ -69,13 +59,26 @@ const valid = {
   turnstileToken: 'tok',
 };
 
-describe('POST /api/generate', () => {
-  it('200 on happy path; returns slug + archetype', async () => {
+describe('POST /api/generate (sync)', () => {
+  it('200 happy path returns slug + archetype + isNew=true', async () => {
     const r = await POST(req(valid));
     expect(r.status).toBe(200);
     const j = await r.json();
     expect(j.slug).toBe('saurabh-abc1');
+    expect(j.isNew).toBe(true);
+    expect(j.archetype).toBeDefined();
     expect(j.archetype.label).toBeDefined();
+  });
+
+  it('does not retrigger WA send for existing user', async () => {
+    insertReadyLead.mockResolvedValueOnce({ slug: 'returning-1', isNew: false });
+    const r = await POST(req(valid));
+    expect(r.status).toBe(200);
+    const j = await r.json();
+    expect(j.isNew).toBe(false);
+    // small async wait for fire-and-forget detection
+    await new Promise((r) => setTimeout(r, 5));
+    expect(sendArchetype).not.toHaveBeenCalled();
   });
 
   it('400 INVALID_PHONE on bad phone', async () => {
@@ -88,12 +91,5 @@ describe('POST /api/generate', () => {
     const r = await POST(req({ ...valid, consent: false }));
     expect(r.status).toBe(400);
     expect((await r.json()).error).toBe('CONSENT_MISSING');
-  });
-
-  it('falls back to rule-based on LLM_BAD', async () => {
-    generateArchetype.mockRejectedValueOnce(new Error('LLM_BAD'));
-    const r = await POST(req(valid));
-    expect(r.status).toBe(200);
-    expect(insertOrFetchLead).toHaveBeenCalled();
   });
 });

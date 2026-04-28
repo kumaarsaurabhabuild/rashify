@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { geocode } from '@/lib/astro/geocode';
 import { fetchChart } from '@/lib/astro/prokerala';
-import { generateArchetype } from '@/lib/llm/gemini';
 import { fallbackArchetype } from '@/lib/llm/fallback-archetype';
-import { insertOrFetchLead } from '@/lib/db/leads';
+import { insertReadyLead } from '@/lib/db/leads';
 import { sendArchetype } from '@/lib/wa/aisensy';
 import { trackServer, flushTelemetry } from '@/lib/telemetry/posthog';
 import { Events } from '@/lib/telemetry/events';
@@ -26,9 +25,14 @@ const ReqZ = z.object({
 export const runtime = 'nodejs';
 export const maxDuration = 10;
 
+/* Sync pipeline: validate → geocode → Prokerala → deterministic archetype
+ * lookup → insert ready row → fire-and-forget WA. ~3-7s typical, fits in
+ * Vercel hobby's 10s budget. The archetype source is the 4-element fallback
+ * for v1; a 324-row lagna×nakshatra lookup can layer in later. */
 export async function POST(req: Request): Promise<Response> {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
   const ipH = ip ? ipHash(ip) : null;
+
   let parsed;
   try {
     parsed = ReqZ.safeParse(await req.json());
@@ -52,32 +56,27 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const distinctId = `tmp-${Date.now()}`;
-  const start = Date.now();
+  const startedAt = Date.now();
   trackServer(distinctId, Events.GEN_PIPELINE_START);
 
   try {
     const t0 = Date.now();
     const geo = await geocode(body.birthPlace);
-    trackServer(distinctId, Events.GEN_GEOCODE_OK, { duration_ms: Date.now() - t0, cache_hit: geo.cacheHit });
+    trackServer(distinctId, Events.GEN_GEOCODE_OK, {
+      duration_ms: Date.now() - t0, cache_hit: geo.cacheHit,
+    });
 
     const t1 = Date.now();
     const datetime = `${body.dobDate}T${body.dobTime}:00+05:30`;
-    const chart = await fetchChart({ datetime, lat: geo.lat, lon: geo.lon, tzOffset: geo.tzOffset });
+    const chart = await fetchChart({
+      datetime, lat: geo.lat, lon: geo.lon, tzOffset: geo.tzOffset,
+    });
     trackServer(distinctId, Events.GEN_PROKERALA_OK, { duration_ms: Date.now() - t1 });
 
+    const archetype = fallbackArchetype(chart);
     const firstName = body.name.split(/\s+/)[0];
-    const t2 = Date.now();
-    let archetype;
-    let llmRetries = 0;
-    try {
-      archetype = await generateArchetype(chart, firstName);
-    } catch {
-      llmRetries = 1;
-      archetype = fallbackArchetype(chart);
-    }
-    trackServer(distinctId, Events.GEN_LLM_OK, { duration_ms: Date.now() - t2, retries: llmRetries });
 
-    const { slug } = await insertOrFetchLead({
+    const { slug, isNew } = await insertReadyLead({
       name: body.name, phoneE164: body.phoneE164,
       dobDate: body.dobDate, dobTime: body.dobTime, birthPlace: body.birthPlace,
       lat: geo.lat, lon: geo.lon, tzOffset: geo.tzOffset,
@@ -85,21 +84,32 @@ export async function POST(req: Request): Promise<Response> {
       ipHash: ipH, referrerSlug: body.referrerSlug ?? null, utm: body.utm ?? null,
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-    const ogUrl = `${appUrl}/api/og?slug=${slug}`;
-    sendArchetype({ phoneE164: body.phoneE164, firstName, slug, archetype, ogUrl })
-      .catch((err) => trackServer(slug, Events.GEN_PIPELINE_FAIL, { step: 'wa_send', error: String(err) }));
+    if (isNew) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+      const ogUrl = `${appUrl}/api/og?slug=${slug}`;
+      sendArchetype({ phoneE164: body.phoneE164, firstName, slug, archetype, ogUrl })
+        .catch((err) => trackServer(slug, Events.GEN_PIPELINE_FAIL, {
+          step: 'wa_send', error: err instanceof Error ? err.message : String(err),
+        }));
+    }
 
-    trackServer(slug, Events.GEN_PIPELINE_DONE, { total_ms: Date.now() - start });
+    trackServer(slug, Events.GEN_PIPELINE_DONE, { total_ms: Date.now() - startedAt });
     await flushTelemetry();
-    return NextResponse.json({ slug, archetype });
+
+    return NextResponse.json({ slug, isNew, archetype });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'UNKNOWN';
     trackServer(distinctId, Events.GEN_PIPELINE_FAIL, { error: msg });
     await flushTelemetry();
-    const code = msg === 'GEOCODE_FAILED' ? 'GEOCODE_FAILED'
-              : msg === 'PROKERALA_DOWN' ? 'PROKERALA_DOWN'
-              : 'INTERNAL';
-    return NextResponse.json({ error: code }, { status: code === 'INTERNAL' ? 500 : 502 });
+    if (msg === 'GEOCODE_FAILED') {
+      return NextResponse.json({ error: 'GEOCODE_FAILED' }, { status: 400 });
+    }
+    if (msg === 'PROKERALA_RATE_LIMIT') {
+      return NextResponse.json({ error: 'RATE_LIMIT' }, { status: 429 });
+    }
+    if (msg.startsWith('PROKERALA_')) {
+      return NextResponse.json({ error: 'PROKERALA_DOWN' }, { status: 502 });
+    }
+    return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   }
 }

@@ -118,8 +118,13 @@ async function callProkerala<T>(url: string, params: URLSearchParams, token: str
   const res = await fetch(`${url}?${params}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
   });
-  if (!res.ok) throw new Error('PROKERALA_DOWN');
-  return (await res.json()) as T;
+  if (res.ok) return (await res.json()) as T;
+  if (res.status === 429) throw new Error('PROKERALA_RATE_LIMIT');
+  if (res.status === 401 || res.status === 403) throw new Error('PROKERALA_AUTH_FAILED');
+  if (res.status >= 500) throw new Error(`PROKERALA_5XX_${res.status}`);
+  // 4xx other than 401/403/429 — likely bad input (e.g. sandbox date restriction)
+  const body = await res.text().catch(() => '');
+  throw new Error(`PROKERALA_4XX_${res.status}: ${body.slice(0, 200)}`);
 }
 
 export async function fetchChart(input: ChartInput, now: Date = new Date()): Promise<Chart> {

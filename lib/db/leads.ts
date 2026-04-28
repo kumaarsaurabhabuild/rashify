@@ -1,7 +1,9 @@
 import { serverClient } from './supabase';
 import { makeSlug } from '@/lib/slug';
 
-export interface InsertLeadInput {
+export type LeadStatus = 'pending' | 'processing' | 'ready' | 'failed';
+
+export interface InsertReadyInput {
   name: string;
   phoneE164: string;
   dobDate: string;
@@ -17,7 +19,11 @@ export interface InsertLeadInput {
   utm: unknown | null;
 }
 
-export async function insertOrFetchLead(input: InsertLeadInput): Promise<{ slug: string; isNew: boolean }> {
+/* Sync pipeline writes a ready row in one shot. If the phone already has a
+ * non-deleted lead, return that slug (dedupe). */
+export async function insertReadyLead(
+  input: InsertReadyInput,
+): Promise<{ slug: string; isNew: boolean }> {
   const sb = serverClient();
 
   const existing = await sb
@@ -40,6 +46,7 @@ export async function insertOrFetchLead(input: InsertLeadInput): Promise<{ slug:
       dob_time: input.dobTime,
       birth_place: input.birthPlace,
       lat: input.lat, lon: input.lon, tz_offset: input.tzOffset,
+      status: 'ready',
       chart_json: input.chartJson,
       archetype: input.archetype,
       referrer_slug: input.referrerSlug,
@@ -58,6 +65,8 @@ export interface PublicCard {
   slug: string;
   name: string;
   archetype: unknown;
+  status: LeadStatus;
+  error: string | null;
   created_at: string;
   referrer_slug: string | null;
 }
@@ -66,7 +75,7 @@ export async function getCardBySlug(slug: string): Promise<PublicCard | null> {
   const sb = serverClient();
   const { data } = await sb
     .from('public_card')
-    .select('slug, name, archetype, created_at, referrer_slug')
+    .select('slug, name, archetype, status, error, created_at, referrer_slug')
     .eq('slug', slug)
     .maybeSingle();
   return (data as PublicCard | null) ?? null;

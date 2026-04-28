@@ -14,11 +14,12 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
   const card = await getCardBySlug(slug);
   if (!card) notFound();
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+
   const parsed = ArchetypeZ.safeParse(card.archetype);
   if (!parsed.success) notFound();
   const a = parsed.data;
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const date = new Date(card.created_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
@@ -64,12 +65,7 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
 
         <p
           className="font-sanskrit reveal reveal-3"
-          style={{
-            textAlign: 'center',
-            fontSize: 28,
-            color: 'var(--gold)',
-            margin: 0,
-          }}
+          style={{ textAlign: 'center', fontSize: 28, color: 'var(--gold)', margin: 0 }}
         >
           {a.sanskritLabel}
         </p>
@@ -90,15 +86,9 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           {a.oneLiner}
         </p>
 
-        {/* Card preview, scaled */}
         <div
           className="reveal reveal-5"
-          style={{
-            marginTop: 56,
-            display: 'flex',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
+          style={{ marginTop: 56, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}
         >
           <div
             style={{
@@ -112,7 +102,6 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
 
-        {/* Strengths + Edges */}
         <div
           className="reveal reveal-5"
           style={{
@@ -139,15 +128,9 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
 
-        {/* Power window + lucky */}
         <div
           className="reveal reveal-6"
-          style={{
-            marginTop: 32,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 56,
-          }}
+          style={{ marginTop: 32, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56 }}
         >
           <div>
             <span className="eyebrow">Power window</span>
@@ -163,36 +146,22 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
 
-        {/* Share actions */}
         <div className="reveal reveal-6" style={{ marginTop: 56 }}>
           <ShareActions slug={slug} label={a.label} appUrl={appUrl} />
         </div>
 
-        {/* Provenance */}
         <details
           className="reveal reveal-6"
-          style={{
-            marginTop: 56,
-            borderTop: '1px solid var(--gold-dim)',
-            paddingTop: 24,
-          }}
+          style={{ marginTop: 56, borderTop: '1px solid var(--gold-dim)', paddingTop: 24 }}
         >
-          <summary
-            className="eyebrow"
-            style={{ cursor: 'pointer', color: 'var(--gold)', listStyle: 'none' }}
-          >
+          <summary className="eyebrow" style={{ cursor: 'pointer', color: 'var(--gold)', listStyle: 'none' }}>
             Why we say this
           </summary>
           <ul
             style={{
-              marginTop: 18,
-              listStyle: 'none',
-              padding: 0,
-              display: 'grid',
-              gap: 10,
-              fontFamily: 'var(--font-body)',
-              fontSize: 16,
-              color: 'var(--parchment-dim)',
+              marginTop: 18, listStyle: 'none', padding: 0,
+              display: 'grid', gap: 10,
+              fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--parchment-dim)',
             }}
           >
             <Row label="System">{a.provenance.system}</Row>
@@ -206,12 +175,9 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
         <div
           className="reveal reveal-6"
           style={{
-            marginTop: 64,
-            textAlign: 'center',
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontSize: 22,
-            color: 'var(--parchment-fade)',
+            marginTop: 64, textAlign: 'center',
+            fontFamily: 'var(--font-display)', fontStyle: 'italic',
+            fontSize: 22, color: 'var(--parchment-fade)',
           }}
         >
           Forward this to someone who would want to know theirs.
