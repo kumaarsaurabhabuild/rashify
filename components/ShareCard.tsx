@@ -16,8 +16,7 @@ const COLORS = {
 // Note: Satori (Vercel OG) requires explicit `display: flex` on every multi-child
 // div, and can't dynamically download Google fonts on Vercel without an explicit
 // `fonts: [...]` option to ImageResponse. We use system fonts to keep OG portable.
-export function ShareCard({ archetype: a, slug, appUrl }: ShareCardProps) {
-  const personalUrl = `${appUrl.replace(/^https?:\/\//, '')}/u/${slug}`;
+export function ShareCard({ archetype: a }: ShareCardProps) {
   return (
     <div
       style={{
@@ -66,19 +65,6 @@ export function ShareCard({ archetype: a, slug, appUrl }: ShareCardProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 96 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 24, color: COLORS.gold, letterSpacing: 4 }}>POWER WINDOW</span>
-          <span style={{ fontSize: 32 }}>{a.powerWindow}</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 24, color: COLORS.gold, letterSpacing: 4 }}>LUCKY</span>
-          <span style={{ fontSize: 32 }}>
-            {a.luckyColor} · {a.luckyNumber}
-          </span>
-        </div>
-      </div>
-
       <div
         style={{
           display: 'flex',
@@ -92,7 +78,6 @@ export function ShareCard({ archetype: a, slug, appUrl }: ShareCardProps) {
           {a.provenance.system} · {a.provenance.ayanamsa} · {a.provenance.lagna} ·{' '}
           {a.provenance.nakshatra} · {a.provenance.currentDasha} dasha
         </div>
-        <div style={{ display: 'flex', fontSize: 36, color: COLORS.text }}>{personalUrl}</div>
       </div>
     </div>
   );

@@ -21,7 +21,6 @@ describe('ShareCard', () => {
     expect(screen.getByText(archetype.label)).toBeInTheDocument();
     expect(screen.getByText(archetype.sanskritLabel)).toBeInTheDocument();
     archetype.coreTraits.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
-    expect(screen.getByText(/rashify\.in\/u\/saurabh-x7k2/)).toBeInTheDocument();
   });
 
   it('renders provenance footer', () => {
