@@ -113,28 +113,6 @@ export function ShareCard({ archetype: a }: ShareCardProps) {
           </div>
         ))}
       </div>
-
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-        zIndex: 1,
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{
-            fontFamily: 'system-ui, sans-serif',
-            fontSize: 18, letterSpacing: 5, fontWeight: 700,
-            textTransform: 'uppercase', color: palette.accent, display: 'flex',
-          }}>1 of 108 archetypes</span>
-          <span style={{
-            fontFamily: 'system-ui, sans-serif',
-            fontSize: 22, color: palette.ink, opacity: 0.85, display: 'flex',
-          }}>~0.9% of humanity</span>
-        </div>
-        <span style={{
-          fontFamily: 'system-ui, sans-serif',
-          fontSize: 28, fontWeight: 700, letterSpacing: 1,
-          color: palette.ink, display: 'flex',
-        }}>rashify.app</span>
-      </div>
     </div>
   );
 }
