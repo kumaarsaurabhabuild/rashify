@@ -41,6 +41,13 @@ export default function Terms() {
           updated version.
         </p>
 
+        <h2>Domain readings — what they are not</h2>
+        <p>
+          Health, wealth, career, relationship, and spiritual readings are written
+          for reflection. They are not medical, legal, financial, or psychological
+          advice. Speak to a qualified professional for any concern that needs one.
+        </p>
+
         <h2>Contact</h2>
         <p>
           For anything else: <a href="mailto:hello@rashify.in">hello@rashify.in</a>.
