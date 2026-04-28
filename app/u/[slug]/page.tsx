@@ -5,6 +5,7 @@ import { getCardBySlug } from '@/lib/db/leads';
 import { ShareCard } from '@/components/ShareCard';
 import { ShareActions } from '@/components/ShareActions';
 import { BrandMark } from '@/components/BrandMark';
+import { PendingReading } from '@/components/PendingReading';
 import { Events } from '@/lib/telemetry/events';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,24 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
   if (!card) notFound();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+
+  if (card.status === 'pending' || card.status === 'processing' || card.status === 'failed') {
+    return (
+      <main className="min-h-screen flex flex-col">
+        <header className="flex items-center justify-between py-6 sm:py-8"
+                style={{ paddingInline: 'clamp(20px, 5vw, 56px)' }}>
+          <BrandMark size="md" />
+          <a href="/" className="eyebrow"
+             style={{ color: 'var(--ink-fade)', textDecoration: 'none' }}>
+            ← <span className="hidden sm:inline">Begin a new reading</span><span className="sm:hidden">New</span>
+          </a>
+        </header>
+        <article className="flex-1 flex items-center justify-center px-6 py-12">
+          <PendingReading slug={slug} />
+        </article>
+      </main>
+    );
+  }
 
   const parsed = ArchetypeZ.safeParse(card.archetype);
   if (!parsed.success) notFound();
