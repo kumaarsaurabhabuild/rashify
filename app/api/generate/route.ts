@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { geocode } from '@/lib/astro/geocode';
-import { fetchChart } from '@/lib/astro/engine';
-import { fallbackArchetype } from '@/lib/llm/fallback-archetype';
-import { insertReadyLead } from '@/lib/db/leads';
-import { sendArchetype } from '@/lib/wa/aisensy';
+import { triggerFullProfile } from '@/lib/astro/engine';
+import { insertPendingProfile } from '@/lib/db/leads';
 import { trackServer, flushTelemetry } from '@/lib/telemetry/posthog';
 import { Events } from '@/lib/telemetry/events';
 import { verifyTurnstile } from '@/lib/util/turnstile';
@@ -25,20 +23,13 @@ const ReqZ = z.object({
 export const runtime = 'nodejs';
 export const maxDuration = 10;
 
-/* Sync pipeline: validate → geocode → Prokerala → deterministic archetype
- * lookup → insert ready row → fire-and-forget WA. ~3-7s typical, fits in
- * Vercel hobby's 10s budget. The archetype source is the 4-element fallback
- * for v1; a 324-row lagna×nakshatra lookup can layer in later. */
 export async function POST(req: Request): Promise<Response> {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
   const ipH = ip ? ipHash(ip) : null;
 
   let parsed;
-  try {
-    parsed = ReqZ.safeParse(await req.json());
-  } catch {
-    return NextResponse.json({ error: 'INVALID_BODY' }, { status: 400 });
-  }
+  try { parsed = ReqZ.safeParse(await req.json()); }
+  catch { return NextResponse.json({ error: 'INVALID_BODY' }, { status: 400 }); }
   if (!parsed.success) {
     const issues = parsed.error.issues;
     if (issues.some((i) => i.path.includes('phoneE164'))) {
@@ -55,62 +46,31 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'TURNSTILE_FAIL' }, { status: 400 });
   }
 
-  const distinctId = `tmp-${Date.now()}`;
-  const startedAt = Date.now();
-  trackServer(distinctId, Events.GEN_PIPELINE_START);
-
   try {
-    const t0 = Date.now();
     const geo = await geocode(body.birthPlace);
-    trackServer(distinctId, Events.GEN_GEOCODE_OK, {
-      duration_ms: Date.now() - t0, cache_hit: geo.cacheHit,
-    });
 
-    const t1 = Date.now();
-    const chart = await fetchChart({
-      birthDate: body.dobDate,
-      birthTime: body.dobTime,
-      lat: geo.lat,
-      lon: geo.lon,
-    });
-    trackServer(distinctId, Events.GEN_PROKERALA_OK, { duration_ms: Date.now() - t1 });
-
-    const archetype = fallbackArchetype(chart);
-    const firstName = body.name.split(/\s+/)[0];
-
-    const { slug, isNew } = await insertReadyLead({
+    const { slug, isNew } = await insertPendingProfile({
       name: body.name, phoneE164: body.phoneE164,
       dobDate: body.dobDate, dobTime: body.dobTime, birthPlace: body.birthPlace,
       lat: geo.lat, lon: geo.lon, tzOffset: geo.tzOffset,
-      chartJson: chart, archetype,
       ipHash: ipH, referrerSlug: body.referrerSlug ?? null, utm: body.utm ?? null,
     });
 
     if (isNew) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-      const ogUrl = `${appUrl}/api/og?slug=${slug}`;
-      sendArchetype({ phoneE164: body.phoneE164, firstName, slug, archetype, ogUrl })
-        .catch((err) => trackServer(slug, Events.GEN_PIPELINE_FAIL, {
-          step: 'wa_send', error: err instanceof Error ? err.message : String(err),
-        }));
+      // Fire-and-forget HF; don't await full pipeline
+      triggerFullProfile({
+        slug, birthDate: body.dobDate, birthTime: body.dobTime,
+        lat: geo.lat, lon: geo.lon,
+      }).catch(() => { /* swallow — cron handles stuck */ });
+      trackServer(slug, Events.GEN_PIPELINE_START, { isNew: true });
     }
 
-    trackServer(slug, Events.GEN_PIPELINE_DONE, { total_ms: Date.now() - startedAt });
     await flushTelemetry();
-
-    return NextResponse.json({ slug, isNew, archetype });
+    return NextResponse.json({ slug, isNew, status: isNew ? 'pending' : 'ready' });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'UNKNOWN';
-    trackServer(distinctId, Events.GEN_PIPELINE_FAIL, { error: msg });
-    await flushTelemetry();
     if (msg === 'GEOCODE_FAILED') {
       return NextResponse.json({ error: 'GEOCODE_FAILED' }, { status: 400 });
-    }
-    if (msg.startsWith('ENGINE_BAD_INPUT')) {
-      return NextResponse.json({ error: 'INVALID_BIRTH_DATA' }, { status: 400 });
-    }
-    if (msg.startsWith('ENGINE_')) {
-      return NextResponse.json({ error: 'ENGINE_DOWN' }, { status: 502 });
     }
     return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   }
