@@ -20,15 +20,30 @@ const baseInput = {
   ipHash: 'h', referrerSlug: null, utm: null,
 };
 
-describe('insertReadyLead', () => {
-  it('returns existing slug when phone already present', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: () => ({
+// chain stub for: select().eq().eq().not().is().order().limit().maybeSingle()
+function existingChain(returnSlug: string | null) {
+  const result = returnSlug ? { slug: returnSlug } : null;
+  const tail = { maybeSingle: async () => ({ data: result, error: null }) };
+  return {
+    select: () => ({
+      eq: () => ({
         eq: () => ({
-          is: () => ({ maybeSingle: async () => ({ data: { slug: 'oldslug' }, error: null }) }),
+          not: () => ({
+            is: () => ({
+              order: () => ({
+                limit: () => tail,
+              }),
+            }),
+          }),
         }),
       }),
-    });
+    }),
+  };
+}
+
+describe('insertReadyLead', () => {
+  it('returns existing slug when ready row present for phone', async () => {
+    mockFrom.mockReturnValueOnce(existingChain('oldslug'));
     const r = await insertReadyLead(baseInput);
     expect(r.slug).toBe('oldslug');
     expect(r.isNew).toBe(false);
@@ -36,13 +51,7 @@ describe('insertReadyLead', () => {
 
   it('inserts new ready row when phone not seen', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: () => ({
-          eq: () => ({
-            is: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
-          }),
-        }),
-      })
+      .mockReturnValueOnce(existingChain(null))
       .mockReturnValueOnce({
         insert: (payload: Record<string, unknown>) => {
           expect(payload.status).toBe('ready');
