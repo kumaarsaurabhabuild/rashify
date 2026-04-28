@@ -75,9 +75,11 @@ export async function fetchChart(input: ChartInput): Promise<Chart> {
 
 /** Fire-and-forget the heavy /generate-full endpoint. Don't await response. */
 export async function triggerFullProfile(input: ChartInput & { slug: string }): Promise<void> {
-  // Use a short timeout so we don't block /api/generate if HF is slow.
+  // 8s window: HF cold-start can take 5-30s; need enough budget to establish TCP
+  // and let HF accept the POST (it returns 200 immediately and works in a thread).
+  // Vercel hobby has 10s function budget, leaving 2s headroom.
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 3000);
+  const t = setTimeout(() => controller.abort(), 8000);
   try {
     await fetch(`${engineUrl()}/generate-full`, {
       method: 'POST',
