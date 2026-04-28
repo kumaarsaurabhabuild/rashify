@@ -343,3 +343,16 @@ Each phase shippable independently. Phase 1 alone gives you richer Supabase data
 - No domain-specific abandonment cliff (each domain teaser → full ratio within 10% of each other)
 - HF /generate-full P95 ≤30s
 - LLM cost ≤₹100/day at 100 leads/day
+
+---
+
+## Appendix A — PostHog dashboards (post-launch)
+
+Setup once via PostHog UI:
+
+1. Funnel: `landing_view → form_submit_success → result_view → unlock_modal_open → unlock_completed`
+2. Funnel (viral): `visitor_on_shared (with ?ref) → form_submit_success`
+3. Trend: `count(unlock_completed) / count(result_view)` daily — unlock conversion
+4. Trend: `count(form_submit_success where referrer_slug != null)` — viral acquisitions
+5. Cohort by domain: which domain's teaser most often triggers unlock click?
+   Insight → Trends → series = `domain_teaser_click`, breakdown by `domain` property.
