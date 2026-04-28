@@ -64,3 +64,38 @@ export const ArchetypeZ = z.object({
   }),
 });
 export type Archetype = z.infer<typeof ArchetypeZ>;
+
+export const DOMAIN_KEYS = ['career', 'health', 'love', 'wealth', 'spiritual'] as const;
+export type DomainKey = typeof DOMAIN_KEYS[number];
+
+const StringRecordZ = z.object({
+  career: z.string(),
+  health: z.string(),
+  love: z.string(),
+  wealth: z.string(),
+  spiritual: z.string(),
+});
+
+const StringArrayRecordZ = z.object({
+  career: z.array(z.string()),
+  health: z.array(z.string()),
+  love: z.array(z.string()),
+  wealth: z.array(z.string()),
+  spiritual: z.array(z.string()),
+});
+
+export const DomainTeasersZ = StringRecordZ;
+export const DomainFullZ = StringRecordZ;
+export const DomainCitationsZ = StringArrayRecordZ;
+
+export type DomainTeasers = z.infer<typeof DomainTeasersZ>;
+export type DomainFull = z.infer<typeof DomainFullZ>;
+export type DomainCitations = z.infer<typeof DomainCitationsZ>;
+
+export const FullProfileZ = z.object({
+  archetype: ArchetypeZ,
+  domain_teasers: DomainTeasersZ,
+  domain_full: DomainFullZ,
+  citations: DomainCitationsZ,
+});
+export type FullProfile = z.infer<typeof FullProfileZ>;

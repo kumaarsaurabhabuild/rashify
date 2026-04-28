@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { ChartZ, ArchetypeZ } from './chart-types';
+import { ChartZ, ArchetypeZ, DomainTeasersZ, DomainFullZ, FullProfileZ } from './chart-types';
+void DomainFullZ;
+void FullProfileZ;
 
 const validChart = {
   ayanamsa: 'Lahiri',
@@ -59,5 +61,20 @@ describe('ArchetypeZ', () => {
   });
   it('rejects coreTraits length != 3', () => {
     expect(ArchetypeZ.safeParse({ ...ok, coreTraits: ['a'] }).success).toBe(false);
+  });
+});
+
+describe('Domain schemas', () => {
+  const okTeasers = {
+    career: 'Strategic builder', health: 'Pitta-strong',
+    love: 'Quiet wave', wealth: 'Slow harvest', spiritual: 'Through service',
+  };
+  it('accepts valid teasers', () => {
+    expect(DomainTeasersZ.safeParse(okTeasers).success).toBe(true);
+  });
+  it('rejects missing domain', () => {
+    const { wealth, ...rest } = okTeasers;
+    void wealth;
+    expect(DomainTeasersZ.safeParse(rest).success).toBe(false);
   });
 });
