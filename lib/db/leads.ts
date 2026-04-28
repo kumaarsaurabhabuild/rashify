@@ -3,7 +3,7 @@ import { makeSlug } from '@/lib/slug';
 
 export type LeadStatus = 'pending' | 'processing' | 'ready' | 'failed';
 
-export interface InsertReadyInput {
+export interface InsertPendingInput {
   name: string;
   phoneE164: string;
   dobDate: string;
@@ -12,23 +12,17 @@ export interface InsertReadyInput {
   lat: number;
   lon: number;
   tzOffset: number;
-  chartJson: unknown;
-  archetype: unknown;
   ipHash: string | null;
   referrerSlug: string | null;
   utm: unknown | null;
 }
 
-/* Sync pipeline writes a ready row in one shot. If the phone already has a
- * non-deleted lead, return that slug (dedupe). */
-export async function insertReadyLead(
-  input: InsertReadyInput,
+/* Insert pending row OR return existing fully-ready row's slug for dedupe. */
+export async function insertPendingProfile(
+  input: InsertPendingInput,
 ): Promise<{ slug: string; isNew: boolean }> {
   const sb = serverClient();
 
-  // Only dedupe against complete (ready) rows. Old broken rows from
-  // earlier async-pipeline tests (status=pending/processing/failed,
-  // archetype=null) shouldn't shadow new submissions.
   const existing = await sb
     .from('leads')
     .select('slug')
@@ -46,18 +40,14 @@ export async function insertReadyLead(
   const { data, error } = await sb
     .from('leads')
     .insert({
-      slug,
-      name: input.name,
-      phone_e164: input.phoneE164,
-      dob_date: input.dobDate,
-      dob_time: input.dobTime,
+      slug, name: input.name, phone_e164: input.phoneE164,
+      dob_date: input.dobDate, dob_time: input.dobTime,
       birth_place: input.birthPlace,
       lat: input.lat, lon: input.lon, tz_offset: input.tzOffset,
-      status: 'ready',
-      chart_json: input.chartJson,
-      archetype: input.archetype,
-      referrer_slug: input.referrerSlug,
-      utm: input.utm,
+      status: 'pending',
+      chart_json: null, archetype: null,
+      domain_teasers: null, domain_full: null, citations: null,
+      referrer_slug: input.referrerSlug, utm: input.utm,
       ip_hash: input.ipHash,
       consent_at: new Date().toISOString(),
     })
@@ -72,18 +62,67 @@ export interface PublicCard {
   slug: string;
   name: string;
   archetype: unknown;
+  domain_teasers: unknown;
   status: LeadStatus;
   error: string | null;
   created_at: string;
   referrer_slug: string | null;
 }
 
+/* Read public_card view — teasers always exposed once status='ready'. */
 export async function getCardBySlug(slug: string): Promise<PublicCard | null> {
   const sb = serverClient();
   const { data } = await sb
     .from('public_card')
-    .select('slug, name, archetype, status, error, created_at, referrer_slug')
+    .select('slug, name, archetype, domain_teasers, status, error, created_at, referrer_slug')
     .eq('slug', slug)
     .maybeSingle();
   return (data as PublicCard | null) ?? null;
+}
+
+export interface UnlockedCard extends PublicCard {
+  domain_full: unknown;
+  citations: unknown;
+}
+
+/* Read unlocked_card view — only rows with unlocked_at set return full content. */
+export async function getUnlockedCardBySlug(slug: string): Promise<UnlockedCard | null> {
+  const sb = serverClient();
+  const { data } = await sb
+    .from('unlocked_card')
+    .select('slug, name, archetype, domain_teasers, domain_full, citations, status, created_at')
+    .eq('slug', slug)
+    .maybeSingle();
+  return (data as UnlockedCard | null) ?? null;
+}
+
+/* Server-side mark: idempotent — only sets unlocked_at if currently null. */
+export async function markUnlocked(
+  slug: string,
+  via: 'wa' | 'ig' | 'copy',
+): Promise<{ ok: boolean }> {
+  const sb = serverClient();
+  const { error } = await sb
+    .from('leads')
+    .update({ unlocked_at: new Date().toISOString(), unlocked_via: via })
+    .eq('slug', slug)
+    .is('unlocked_at', null);
+  if (error) throw new Error(`UNLOCK_FAILED: ${error.message}`);
+  return { ok: true };
+}
+
+/* Cron / stuck-row recovery — find rows still pending past a deadline. */
+export async function findStuckPending(olderThanMs: number): Promise<Array<{ slug: string; lat: number; lon: number; dobDate: string; dobTime: string; tzOffset: number }>> {
+  const sb = serverClient();
+  const cutoff = new Date(Date.now() - olderThanMs).toISOString();
+  const { data } = await sb
+    .from('leads')
+    .select('slug, lat, lon, dob_date, dob_time, tz_offset')
+    .eq('status', 'pending')
+    .lt('created_at', cutoff)
+    .limit(20);
+  return (data ?? []).map((r) => ({
+    slug: r.slug, lat: r.lat, lon: r.lon,
+    dobDate: r.dob_date, dobTime: r.dob_time, tzOffset: r.tz_offset,
+  }));
 }
