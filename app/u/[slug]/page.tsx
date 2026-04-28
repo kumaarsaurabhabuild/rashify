@@ -180,24 +180,6 @@ export default async function CardPage({ params }: { params: Promise<{ slug: str
           </div>
         </div>
 
-        <div
-          className="reveal reveal-6 grid grid-2"
-          style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}
-        >
-          <div>
-            <span className="eyebrow">Power window</span>
-            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)' }}>
-              {a.powerWindow}
-            </p>
-          </div>
-          <div>
-            <span className="eyebrow">Lucky</span>
-            <p style={{ marginTop: 10, fontSize: 'clamp(18px, 2.5vw, 22px)', fontFamily: 'var(--font-display)' }}>
-              {a.luckyColor} · {a.luckyNumber}
-            </p>
-          </div>
-        </div>
-
         <div className="reveal reveal-6" style={{ marginTop: 48 }}>
           <ShareActions slug={slug} label={a.label} appUrl={appUrl} />
         </div>
