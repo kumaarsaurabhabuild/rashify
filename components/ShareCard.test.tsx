@@ -23,9 +23,11 @@ describe('ShareCard', () => {
     archetype.coreTraits.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
   });
 
-  it('renders provenance footer', () => {
+  it('renders viral framing — eyebrow, oneLiner, rarity tag, brand', () => {
     render(<ShareCard archetype={archetype} slug="x" appUrl="https://rashify.in" />);
-    expect(screen.getByText(/Lahiri/)).toBeInTheDocument();
-    expect(screen.getByText(/Saturn-Venus/)).toBeInTheDocument();
+    expect(screen.getByText(/YOUR VEDIC ARCHETYPE/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(archetype.oneLiner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))).toBeInTheDocument();
+    expect(screen.getByText(/1 of 108 archetypes/i)).toBeInTheDocument();
+    expect(screen.getByText('rashify.app')).toBeInTheDocument();
   });
 });
