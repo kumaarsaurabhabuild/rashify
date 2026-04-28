@@ -26,5 +26,13 @@ export const Events = {
 
   VISITOR_ON_SHARED: 'visitor_on_shared',
   VIRAL_SIGNUP: 'viral_signup',
+
+  DOMAIN_TEASER_CLICK: 'domain_teaser_click',
+  UNLOCK_MODAL_OPEN: 'unlock_modal_open',
+  UNLOCK_MODAL_DISMISSED: 'unlock_modal_dismissed',
+  UNLOCK_SHARE_CLICKED: 'unlock_share_clicked',
+  UNLOCK_COMPLETED: 'unlock_completed',
+  DOMAIN_FULL_VIEW: 'domain_full_view',
+  DOMAIN_FULL_SCROLL_DEPTH: 'domain_full_scroll_depth',
 } as const;
 export type EventName = (typeof Events)[keyof typeof Events];
