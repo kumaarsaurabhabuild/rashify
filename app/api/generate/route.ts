@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { geocode } from '@/lib/astro/geocode';
-import { fetchChart } from '@/lib/astro/prokerala';
+import { fetchChart } from '@/lib/astro/engine';
 import { fallbackArchetype } from '@/lib/llm/fallback-archetype';
 import { insertReadyLead } from '@/lib/db/leads';
 import { sendArchetype } from '@/lib/wa/aisensy';
@@ -67,9 +67,11 @@ export async function POST(req: Request): Promise<Response> {
     });
 
     const t1 = Date.now();
-    const datetime = `${body.dobDate}T${body.dobTime}:00+05:30`;
     const chart = await fetchChart({
-      datetime, lat: geo.lat, lon: geo.lon, tzOffset: geo.tzOffset,
+      birthDate: body.dobDate,
+      birthTime: body.dobTime,
+      lat: geo.lat,
+      lon: geo.lon,
     });
     trackServer(distinctId, Events.GEN_PROKERALA_OK, { duration_ms: Date.now() - t1 });
 
@@ -104,11 +106,11 @@ export async function POST(req: Request): Promise<Response> {
     if (msg === 'GEOCODE_FAILED') {
       return NextResponse.json({ error: 'GEOCODE_FAILED' }, { status: 400 });
     }
-    if (msg === 'PROKERALA_RATE_LIMIT') {
-      return NextResponse.json({ error: 'RATE_LIMIT' }, { status: 429 });
+    if (msg.startsWith('ENGINE_BAD_INPUT')) {
+      return NextResponse.json({ error: 'INVALID_BIRTH_DATA' }, { status: 400 });
     }
-    if (msg.startsWith('PROKERALA_')) {
-      return NextResponse.json({ error: 'PROKERALA_DOWN' }, { status: 502 });
+    if (msg.startsWith('ENGINE_')) {
+      return NextResponse.json({ error: 'ENGINE_DOWN' }, { status: 502 });
     }
     return NextResponse.json({ error: 'INTERNAL' }, { status: 500 });
   }

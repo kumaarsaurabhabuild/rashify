@@ -8,7 +8,7 @@ const { insertReadyLead, sendArchetype } = vi.hoisted(() => ({
 vi.mock('@/lib/astro/geocode', () => ({
   geocode: vi.fn(async () => ({ lat: 19.07, lon: 72.87, tzOffset: 330, cacheHit: false })),
 }));
-vi.mock('@/lib/astro/prokerala', () => ({
+vi.mock('@/lib/astro/engine', () => ({
   fetchChart: vi.fn(async () => ({
     ayanamsa: 'Lahiri',
     nakshatra: { name: 'Anuradha', pada: 2, lord: 'Saturn' },
